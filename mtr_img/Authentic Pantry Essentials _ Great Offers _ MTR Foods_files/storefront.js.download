@@ -1,0 +1,2561 @@
+const eoShBaseUrl = 'https://sf-loginwithmobilephone.extendons.com/';
+var eoshMessages = {
+    main_button_text: "Login / Register with Phone",
+    phone_num_error_text: "Invalid Phone Number/Format",
+    code_error_text: "Invalid Code",
+    to_many_request_error_text: "Too many requests. Try again after 1 hour(s)",
+    success_verification_text: "Verification code sent. Check your phone.",
+    phone_no_field_text: "Enter your phone",
+    code_field_text: "Enter Code",
+    resetpassword_field_text: "Enter Password",
+    send_code_button_text: "Send Code",
+    verify_code_button_text: "Verify Code",
+    update_email_button_text: "Update",
+    buttons_bg_color: "",
+    buttons_text_color: "",
+    account_main_heading_text: "Welcome to your Account!",
+    first_name_field_text: "Enter First Name",
+    last_name_field_text: "Enter Last Name",
+    email_field_text: "Enter Email",
+    resend_code_button_text: "Resend code",
+    code_expiration_time_error: "Code expired. Resend code",
+    enable_resend_code_button: false,
+    enable_code_expiration: false,
+    code_expiration_time: "10:00",
+};
+const phoneFieldText = "Enter Phone Number";
+const eoShShopDomain = Shopify.shop;
+const eoShShopTheme = Shopify.theme.name;
+const eoShShopId = Shopify.theme.theme_store_id;
+const eoShopLocale = Shopify.locale;
+var appSettings = {};
+var eoShPhoneNumber = null;
+var eoShFname = null;
+var eoShLname = null;
+var eoShEmail = null;
+var eoShInterval;
+var eoShPassReset = false;
+var eoShCustomerFeildStore=['uapom-bidding-uganda.myshopify.com','sanlam-bidding-uganda.myshopify.com'];
+var fireBaseConfigForClickevent=null;
+var scopeAvailableForPage=false;
+var eoShphoneNumberStatus=false;
+var eoShemailStatus=false;
+var eoShexistPhoneNumber=null;
+var eoshNewCustomer=false;
+var eoShResend=false;
+
+(function () {
+    var loadScript = function (url, callback) {
+        var script = document.createElement("script");
+        script.type = "text/javascript";
+        if (script.readyState) {
+            script.onreadystatechange = function () {
+                if (script.readyState == "loaded" || script.readyState == "complete") {
+                    script.onreadystatechange = null;
+                    callback();
+                }
+            };
+        } else {
+            script.onload = function () {
+                callback();
+            };
+        }
+        script.src = url;
+        document.getElementsByTagName("head")[0].appendChild(script);
+    };
+    var eoShLoginWithPhone = function ($) {
+        $(document).ready(function () {
+            $("<link/>", {
+                rel: "stylesheet",
+                type: "text/css",
+                href: "//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css"
+            }).appendTo("head");
+            let pageUrl = $(location).attr("href");
+            if (pageUrl.includes("/account/login") || pageUrl.includes("/account/register")) {
+                if (eoShShopDomain == "shurfa-restaurant.myshopify.com") {
+                    len = $(".otp").length;
+                    count = 0;
+                    for (let i = 0; i < len; i++) {
+                        otpForm = $(".otp")[count];
+                        if ($(otpForm).parent().attr("id") != "login") {
+                            $(".otp")[count].remove();
+                        } else {
+                            count++;
+                        }
+                    }
+                    $(".h-mob").css({ "margin-top": "20%" });
+                } else if ((eoShShopDomain == "thebtclub.myshopify.com" || (eoShShopTheme == "Prestige" && eoShShopDomain != "koshali-art-crafts-enterprise.myshopify.com")) && pageUrl.includes("/account/login")) {
+                    if ($(".otp")) {
+                        $(".otp")[0].remove();
+                        $(".otp")[1].remove();
+                    }
+                } else if (eoShShopDomain == "goodzayb2b.myshopify.com") {
+                    if (pageUrl.includes("/account/login")) {
+                        form = $(".otp")[0];
+                        $(form).insertBefore("#customer_login");
+                        $('<br/>').insertBefore("#customer_login");
+                    }
+                    else if (pageUrl.includes("/account/register")) {
+                        form = $(".otp")[0];
+                        $(form).insertBefore($("#create_customer").prev());
+                        $('<br/>').insertBefore($("#create_customer").prev());
+                    }
+                } else if (eoShShopDomain == "fabbricaocchiali.myshopify.com" && (pageUrl.includes("/account/login") || pageUrl.includes("/account/register"))) {
+                    if ($(".otp")) {
+                        $(".otp")[0].remove();
+                        $(".otp")[1].remove();
+                    }
+                } else if (eoShShopDomain == "sea-lion-e-market.myshopify.com" && (pageUrl.includes("/account/login") || pageUrl.includes("/account/register"))) {
+                    len = $(".otp").length;
+                    count = 0;
+                    if (len > 1) {
+                        for (let i = 1; i < len; i++) {
+                            $(".otp")[i - count].remove();
+                            count++;
+                        }
+                    }
+                    form = $(".otp")[0];
+                    $(".otp")[0].remove();
+                    if (pageUrl.includes("/account/login")) {
+                        $(form).insertBefore("#customer_login");
+                    } else if (pageUrl.includes("/account/register")) {
+                        $('.container').eq(4).prepend(form, $("#customer_login"));
+                    }
+                } else if (eoShShopDomain == "origincostomes.myshopify.com") {
+                    if (pageUrl.includes("/account/login")) {
+                        $(".otp")[0].remove();
+                    } else if (pageUrl.includes("/account/register")) {
+                        $(".otp")[0].remove();
+                        $(".otp")[1].remove();
+                        $(".otp")[1].remove();
+                    }
+                } else if (eoShShopDomain == "farm360.myshopify.com" || eoShShopDomain == "jubleelens-eyeglass.myshopify.com" || eoShShopId == 887 || eoShShopDomain == "silkfabindia.myshopify.com") {
+                    if (pageUrl.includes("/account/login")) {
+                        $(".otp")[0].remove();
+                    }
+                } else {
+                    len = $(".otp").length;
+                    count = 0;
+                    if (len > 1) {
+                        for (let i = 1; i < len; i++) {
+                            $(".otp")[i - count].remove();
+                            count++;
+                        }
+                    }
+                }
+                initialize();
+            } else if (pageUrl.includes('/account/reset') || pageUrl.includes("/account/activate")) {
+                updatePasswordInitialization();
+            } else if (pageUrl.includes('/account')) {
+                if (pageUrl.split('/').pop() == 'account' || pageUrl.split('/').pop().includes("account?p=0") || pageUrl.split('/').pop().includes("account")) {
+                    showLoader();
+                    getCusomerAccountDetails();
+                }
+            } else {
+                initialize();
+            }
+        });
+        function base64Encode(data) {
+            const jsonString = JSON.stringify(data);
+            const encoded = encodeURIComponent(jsonString).replace(/%([0-9A-F]{2})/g, function(match, p1) {
+                return String.fromCharCode('0x' + p1);
+            });
+            return btoa(encoded);
+        }   
+        function initialize() {
+            const requestData = { domain: eoShShopDomain };
+            const encryptedData = base64Encode(requestData);
+            var fireBaseConfig;
+            $.ajax({
+                url: eoShBaseUrl + 'api/settings',
+                type: 'GET',
+                dataType: 'json',
+                crossDomain: true,
+                data: { 'dm': encryptedData },
+                success: function (response) {
+                    response.appSetting=JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(response.appSetting), c => c.charCodeAt(0))));
+                    if (response['msg']) {
+                        if (eoShShopDomain == "sooqaman.myshopify.com") {
+                            if (Shopify.locale == "ar") {
+                                eoshMessages = response['appSetting'];
+                            }
+                        } else {
+                            eoshMessages = response['appSetting'];
+                        }
+                        appSettings = response['appSetting'];
+                        scopeAvailableForPage=response.scopeAvailable;
+                        fireBaseConfig = {
+                            apiKey: appSettings['api_key'],
+                            authDomain: appSettings['auth_domain'],
+                            projectId: appSettings['project_id'],
+                            storageBucket: appSettings['storage_bucket'],
+                            messagingSenderId: appSettings['message_sender_id'],
+                            appId: appSettings['app_id'],
+                        };
+                        fireBaseConfigForClickevent=fireBaseConfig;
+
+                        if (appSettings['measurement_id']) {
+                            fireBaseConfig['measurementId'] = appSettings['measurement_id'];
+                            fireBaseConfigForClickevent['measurementId'] = appSettings['measurement_id'];
+                        }
+                        $('.otp').find('div.email').hide();
+                        $('.eosh_email_btn').parent().hide();
+                        recaptchaRender(fireBaseConfig);
+                    }
+                },
+                error: function (reject) {
+                    console.log(reject);
+                }
+            });
+        }
+        function recaptchaRender(fireBaseConfig) {
+            let pageUrl = $(location).attr("href");
+            let resend = '';
+            let codeExpiration = '';
+
+            if(scopeAvailableForPage == "true" && !pageUrl.includes('/associate-account') && $(".otp").length == 0){
+
+                if (appSettings.enable_resend_code_button) {
+                   
+                   resend = `<div class="resend"><a id="resend-otp" href="">${appSettings.resend_code_button_text}</a></div>`;
+                }
+                if (appSettings.enable_code_expiration) {
+                codeExpiration=`<div class="time-remaining"><p style="color:#000000;">${appSettings.time_remaning_label_text}<span id="time">${appSettings.code_expiration_time}:00</span></p></div>`; 
+                buttons =`<div class="bottom-part">
+                                <div class="back">
+                                  <a id="back-btn"  href="">${appSettings.back_button_text}</a>
+                                </div>
+                                <div class="verify-button send-code-button">
+                                  <button id="confirm-code" class="send-button">${appSettings.verify_code_button_text}</button>
+                                </div>
+                                ${resend}
+                              </div>`;
+
+                }
+                else{
+
+                        buttons=`<div class="bottom-part" style="margin-top:5%;">
+                                    <div class="back">
+                                      <a id="back-btn"  href="">${appSettings.back_button_text}</a>
+                                    </div>
+                                    <div class="verify-button send-code-button">
+                                      <button id="confirm-code"  class="send-button">${appSettings.verify_code_button_text}</button>
+                                    </div>
+                                    ${resend}
+                                  </div>`;       
+                    }
+                    
+                    select = '<select name="countryCode" id="phone-number-country-code"><option data-countryCode="US" value="1">US (+1)</option><option data-countryCode="GB" value="44">GB (+44)</option><option data-countryCode="DZ" value="213">DZ (+213)</option><option data-countryCode="AD" value="376">AD (+376)</option><option data-countryCode="AO" value="244">AO (+244)</option><option data-countryCode="AI" value="1264">AI (+1264)</option><option data-countryCode="AG" value="1268">AG (+1268)</option><option data-countryCode="AR" value="54">AR (+54)</option><option data-countryCode="AM" value="374">AM (+374)</option><option data-countryCode="AW" value="297">AW (+297)</option><option data-countryCode="AU" value="61">AU (+61)</option><option data-countryCode="AT" value="43">AT (+43)</option><option data-countryCode="AZ" value="994">AZ (+994)</option><option data-countryCode="BS" value="1242">BS (+1242)</option><option data-countryCode="BH" value="973">BH (+973)</option><option data-countryCode="BD" value="880">BD (+880)</option><option data-countryCode="BB" value="1246">BB (+1246)</option><option data-countryCode="BY" value="375">BY (+375)</option><option data-countryCode="BE" value="32">BE (+32)</option><option data-countryCode="BZ" value="501">BZ (+501)</option><option data-countryCode="BJ" value="229">BJ (+229)</option><option data-countryCode="BM" value="1441">BM (+1441)</option><option data-countryCode="BT" value="975">BT (+975)</option><option data-countryCode="BO" value="591">BO (+591)</option><option data-countryCode="BA" value="387">BA (+387)</option><option data-countryCode="BW" value="267">BW (+267)</option><option data-countryCode="BR" value="55">BR (+55)</option><option data-countryCode="BN" value="673">BN (+673)</option><option data-countryCode="BG" value="359">BG (+359)</option><option data-countryCode="BF" value="226">BF (+226)</option><option data-countryCode="BI" value="257">BI (+257)</option><option data-countryCode="KH" value="855">KH (+855)</option><option data-countryCode="CM" value="237">CM (+237)</option><option data-countryCode="CA" value="1">CA (+1)</option><option data-countryCode="CV" value="238">CV (+238)</option><option data-countryCode="KY" value="1345">KY (+1345)</option><option data-countryCode="CF" value="236">CF (+236)</option><option data-countryCode="CL" value="56">CL (+56)</option><option data-countryCode="CN" value="86">CN (+86)</option><option data-countryCode="CO" value="57">CO (+57)</option><option data-countryCode="KM" value="269">KM (+269)</option><option data-countryCode="CG" value="242">CG (+242)</option><option data-countryCode="CK" value="682">CK (+682)</option><option data-countryCode="CR" value="506">CR (+506)</option><option data-countryCode="HR" value="385">HR (+385)</option><option data-countryCode="CY" value="90">CY - N (+90)</option><option data-countryCode="CY" value="357">CY - S (+357)</option><option data-countryCode="CZ" value="420">CZ (+420)</option><option data-countryCode="DK" value="45">DK (+45)</option><option data-countryCode="DJ" value="253">DJ (+253)</option><option data-countryCode="DM" value="1809">DM (+1809)</option><option data-countryCode="DO" value="1809">DO (+1809)</option><option data-countryCode="EC" value="593">EC (+593)</option><option data-countryCode="EG" value="20">EG (+20)</option><option data-countryCode="SV" value="503">SV (+503)</option><option data-countryCode="GQ" value="240">GQ (+240)</option><option data-countryCode="ER" value="291">ER (+291)</option><option data-countryCode="EE" value="372">EE (+372)</option><option data-countryCode="ET" value="251">ET (+251)</option><option data-countryCode="FK" value="500">FK (+500)</option><option data-countryCode="FO" value="298">FO (+298)</option><option data-countryCode="FJ" value="679">FJ (+679)</option><option data-countryCode="FI" value="358">FI (+358)</option><option data-countryCode="FR" value="33">FR (+33)</option><option data-countryCode="GF" value="594">GF (+594)</option><option data-countryCode="PF" value="689">PF (+689)</option><option data-countryCode="GA" value="241">GA (+241)</option><option data-countryCode="GM" value="220">GM (+220)</option><option data-countryCode="GE" value="7880">GE (+7880)</option><option data-countryCode="DE" value="49">DE (+49)</option><option data-countryCode="GH" value="233">GH (+233)</option><option data-countryCode="GI" value="350">GI (+350)</option><option data-countryCode="GR" value="30">GR (+30)</option><option data-countryCode="GL" value="299">GL (+299)</option><option data-countryCode="GD" value="1473">GD (+1473)</option><option data-countryCode="GP" value="590">GP (+590)</option><option data-countryCode="GU" value="671">GU (+671)</option><option data-countryCode="GT" value="502">GT (+502)</option><option data-countryCode="GN" value="224">GN (+224)</option><option data-countryCode="GW" value="245">GW (+245)</option><option data-countryCode="GY" value="592">GY (+592)</option><option data-countryCode="HT" value="509">HT (+509)</option><option data-countryCode="HN" value="504">HN (+504)</option><option data-countryCode="HK" value="852">HK (+852)</option><option data-countryCode="HU" value="36">HU (+36)</option><option data-countryCode="IS" value="354">IS (+354)</option><option data-countryCode="IN" value="91">IN (+91)</option><option data-countryCode="ID" value="62">ID (+62)</option><option data-countryCode="IQ" value="964">IQ (+964)</option><option data-countryCode="IR" value="98">IR (+98)</option><option data-countryCode="IE" value="353">IE (+353)</option><option data-countryCode="IL" value="972">IL (+972)</option><option data-countryCode="IT" value="39">IT (+39)</option><option data-countryCode="JM" value="1876">JM (+1876)</option><option data-countryCode="JP" value="81">JP (+81)</option><option data-countryCode="JO" value="962">JO (+962)</option><option data-countryCode="KZ" value="7">KZ (+7)</option><option data-countryCode="KE" value="254">KE (+254)</option><option data-countryCode="KI" value="686">KI (+686)</option><option data-countryCode="KP" value="850">KP (+850)</option><option data-countryCode="KR" value="82">KR (+82)</option><option data-countryCode="KW" value="965">KW (+965)</option><option data-countryCode="KG" value="996">KG (+996)</option><option data-countryCode="LA" value="856">LA (+856)</option><option data-countryCode="LV" value="371">LV (+371)</option><option data-countryCode="LB" value="961">LB (+961)</option><option data-countryCode="LS" value="266">LS (+266)</option><option data-countryCode="LR" value="231">LR (+231)</option><option data-countryCode="LY" value="218">LY (+218)</option><option data-countryCode="LI" value="417">LI (+417)</option><option data-countryCode="LT" value="370">LT (+370)</option><option data-countryCode="LU" value="352">LU (+352)</option><option data-countryCode="MO" value="853">MO (+853)</option><option data-countryCode="MK" value="389">MK (+389)</option><option data-countryCode="MG" value="261">MG (+261)</option><option data-countryCode="MW" value="265">MW (+265)</option><option data-countryCode="MY" value="60">MY (+60)</option><option data-countryCode="MU" value="230">MU (+230)</option><option data-countryCode="MV" value="960">MV (+960)</option><option data-countryCode="ML" value="223">ML (+223)</option><option data-countryCode="MT" value="356">MT (+356)</option><option data-countryCode="MH" value="692">MH (+692)</option><option data-countryCode="MQ" value="596">MQ (+596)</option><option data-countryCode="MR" value="222">MR (+222)</option><option data-countryCode="YT" value="269">YT (+269)</option><option data-countryCode="MX" value="52">MX (+52)</option><option data-countryCode="FM" value="691">FM (+691)</option><option data-countryCode="MD" value="373">MD (+373)</option><option data-countryCode="MC" value="377">MC (+377)</option><option data-countryCode="MN" value="976">MN (+976)</option><option data-countryCode="MS" value="1664">MS (+1664)</option><option data-countryCode="MA" value="212">MA (+212)</option><option data-countryCode="MZ" value="258">MZ (+258)</option><option data-countryCode="MM" value="95">MM (+95)</option><option data-countryCode="NA" value="264">NA (+264)</option><option data-countryCode="NR" value="674">NR (+674)</option><option data-countryCode="NP" value="977">NP (+977)</option><option data-countryCode="NL" value="31">NL (+31)</option><option data-countryCode="NC" value="687">NC (+687)</option><option data-countryCode="NZ" value="64">NZ (+64)</option><option data-countryCode="NI" value="505">NI (+505)</option><option data-countryCode="NE" value="227">NE (+227)</option><option data-countryCode="NG" value="234">NG (+234)</option><option data-countryCode="NU" value="683">NU (+683)</option><option data-countryCode="NF" value="672">NF (+672)</option><option data-countryCode="NP" value="670">NP (+670)</option><option data-countryCode="NO" value="47">NO (+47)</option><option data-countryCode="OM" value="968">OM (+968)</option><option data-countryCode="PK" value="92">PK (+92)</option><option data-countryCode="PW" value="680">PW (+680)</option><option data-countryCode="PA" value="507">PA (+507)</option><option data-countryCode="PG" value="675">PG (+675)</option><option data-countryCode="PY" value="595">PY (+595)</option><option data-countryCode="PE" value="51">PE (+51)</option><option data-countryCode="PH" value="63">PH (+63)</option><option data-countryCode="PL" value="48">PL (+48)</option><option data-countryCode="PT" value="351">PT (+351)</option><option data-countryCode="PR" value="1787">PR (+1787)</option><option data-countryCode="QA" value="974">QA (+974)</option><option data-countryCode="RE" value="262">RE (+262)</option><option data-countryCode="RO" value="40">RO (+40)</option><option data-countryCode="RU" value="7">RU (+7)</option><option data-countryCode="RW" value="250">RW (+250)</option><option data-countryCode="SM" value="378">SM (+378)</option><option data-countryCode="ST" value="239">ST (+239)</option><option data-countryCode="SA" value="966">SA (+966)</option><option data-countryCode="SN" value="221">SN (+221)</option><option data-countryCode="CS" value="381">CS (+381)</option><option data-countryCode="SC" value="248">SC (+248)</option><option data-countryCode="SL" value="232">SL (+232)</option><option data-countryCode="SG" value="65">SG (+65)</option><option data-countryCode="SK" value="421">SK (+421)</option><option data-countryCode="SI" value="386">SI (+386)</option><option data-countryCode="SB" value="677">SB (+677)</option><option data-countryCode="SO" value="252">SO (+252)</option><option data-countryCode="ZA" value="27">ZA (+27)</option><option data-countryCode="ES" value="34">ES (+34)</option><option data-countryCode="LK" value="94">LK (+94)</option><option data-countryCode="SH" value="290">SH (+290)</option><option data-countryCode="KN" value="1869">KN (+1869)</option><option data-countryCode="SC" value="1758">SC (+1758)</option><option data-countryCode="SR" value="597">SR (+597)</option><option data-countryCode="SD" value="249">SD (+249)</option><option data-countryCode="SZ" value="268">SZ (+268)</option><option data-countryCode="SE" value="46">SE (+46)</option><option data-countryCode="CH" value="41">CH (+41)</option><option data-countryCode="TW" value="886">TW (+886)</option><option data-countryCode="TJ" value="992">TJ (+992)</option><option data-countryCode="TH" value="66">TH (+66)</option><option data-countryCode="TG" value="228">TG (+228)</option><option data-countryCode="TO" value="676">TO (+676)</option><option data-countryCode="TT" value="1868">TT (+1868)</option><option data-countryCode="TN" value="216">TN (+216)</option><option data-countryCode="TR" value="90">TR (+90)</option><option data-countryCode="TM" value="993">TM (+993)</option><option data-countryCode="TC" value="1649">TC (+1649)</option><option data-countryCode="TV" value="688">TV (+688)</option><option data-countryCode="UG" value="256">UG (+256)</option><option data-countryCode="UA" value="380">UA (+380)</option><option data-countryCode="AE" value="971">AE (+971)</option><option data-countryCode="UY" value="598">UY (+598)</option><option data-countryCode="UZ" value="998">UZ (+998)</option><option data-countryCode="VU" value="678">VU (+678)</option><option data-countryCode="VA" value="379">VA (+379)</option><option data-countryCode="VE" value="58">VE (+58)</option><option data-countryCode="VN" value="84">VN (+84)</option><option data-countryCode="VG" value="1">VG - British (+1)</option><option data-countryCode="VI" value="1">VI - US (+1)</option><option data-countryCode="WF" value="681">WF (+681)</option><option data-countryCode="YE" value="969">YE (N)(+969)</option><option data-countryCode="YE" value="967">YE (S)(+967)</option><option data-countryCode="ZM" value="260">ZM (+260)</option><option data-countryCode="ZW" value="263">ZW (+263)</option><option data-countryCode="TZ" value="255">TZ (+255)</option></select>';
+                    
+                    form = `<style>
+                                    .otp{margin:1rem auto;text-align:center;width:fit-content;}
+                                    .phone-no-email{display:block; margin-bottom: 15px; grid-gap:10px;}
+                                    .phone-no-email .phone{width: 100%;}
+                                    .phone-no-email .email{width: 100%;}
+                                    .phone-no-email .phone .eosh_heading {min-width: 100%; color: #000000 !important; text-align: center; text-decoration: none;display: block; font-size: 20px; line-height: 26px; font-weight:600; padding: 10px 6px 5px; box-sizing: border-box;}
+                                    .phone-no-email .email .eosh_email_btn{ min-width: 100%; color: #000000 !important; text-align: center; text-decoration: underline;display: block; font-size: 14px; line-height: 24px; cursor: pointer; padding: 10px  6px; box-sizing: border-box;}
+                                    .select-container{ border: 1px solid #B7B7B7; box-sizing: border-box;display: flex;}
+                                    .select-container .country-code{display: inline-block; padding-left: 15px; box-sizing: border-box;  padding-right: 0px; margin-right: 10px; width: 30%;}
+                                    .select-container .country-code select{background: none;background-image:unset !important;border: none;appearance: none;color:#828282; font-size: 14px; line-height: 24px; font-weight: 400; width: 100%; outline: unset; min-height:47px;margin-bottom:0px;padding:0px;} 
+                                    .select-container .country-code option{color: black;}
+                                    .send-code-button .send-button {text-align: center;text-decoration: none; display: inline-block;font-size: 14px; margin: 4px 25px; cursor: pointer; padding: 14px 25px; margin-top:0px;cursor: pointer;}
+                                    .send-code-button{text-align: center; margin-top:25px;}
+                                    .select-container .number-field{display: flex; align-items: center; width:70%;}
+                                    .select-container .number-field input{border: none; padding: 0px 15px; font-size: 14px; line-height: 24px; font-weight: 400; appearance: none; box-sizing: border-box;  width:100%; outline: unset; min-height:47px;margin-bottom:0px;}   
+                                    .select-container .number-field input[type=tel]:focus{ outline: none;  }
+                                    .select-container .number-field:before{content:''; width:2px; height:20px; display: inline-block; background-color: #B7B7B7;}
+                                    .otp-show-number p{ font-size: 14px; font-weight: 500; color: #515151;margin-top: 15px; margin-bottom: 20px;}
+                                    .code.select-container .code-field input{border: none; padding: 0px 15px; font-size: 14px; line-height: 24px; font-weight: 400;  appearance: none; box-sizing: border-box; border-left: 1px solid #B7B7B7;width: 100%; min-height:47px;margin-bottom:0px;} 
+                                    .code.select-container .code-field input[type=tel]:focus{ outline: none;}
+                                    .code.select-container .code-field input{border-left: none;}
+                                    .code.select-container .code-field{flex-basis: 100%;}
+                                    .time-remaining{text-align: center; padding-bottom: 4px;box-sizing: border-box;}
+                                    .time-remaining p{ font-size: 14px; line-height: 24px; font-weight: 500; color: #515151; margin-top: 20px; margin-bottom:0px; box-sizing: border-box;}
+                                    .time-remaining p span{color: #121212; }
+                                    .verify-button.send-code-button{margin-top: 10px;}
+                                    .verify-button#confirm-code{margin-top:0px;}
+                                    .bottom-part{display: flex; flex-wrap: wrap; align-items: center; justify-content: center;}
+                                    .back a{color:#000000!important;font-size: 14px; font-weight: 500;padding-right: 15px;box-sizing: border-box;}
+                                    .resend a{color:#000000!important;font-size: 14px; font-weight: 500;padding-left: 15px;box-sizing: border-box; text-decoration: none;}
+                                    .time-remaining p a{text-decoration: none;}
+                                    #code-div{display:none;}
+                                    .eosh-input{width:100%;height:50px;padding:5px 20px;border:1px solid #e3e3e3;border-radius:4px;background:#fafafa;font-size:15px;font-weight:300;color:#000;-webkit-appearance:none;-moz-appearance:none;appearance:none}
+                                    .eosh-btn{width:auto!important;border-radius:3px;padding:10px 21px;background-color:transparent;font-family:"Questa Sans",sans-serif;font-size:15px;font-weight:500;line-height:1.3;text-decoration:none;vertical-align:middle;text-align:center;cursor:pointer;-webkit-box-shadow:none;box-shadow:none;-webkit-appearance:none;-moz-appearance:none;appearance:none;-webkit-transition:border .4s,background .4s,color .4s;-o-transition:border .4s,background .4s,color .4s;transition:border .4s,background .4s,color .4s}
+                                     #pass-div i{margin-left:-10%;cursor:pointer;font-size:22px;margin-top:6%}
+                                     #pass-div{display:none}
+                                     #send-reset-pass,.send-code-button .send-button{background-color:${appSettings.buttons_bg_color}; color:${appSettings.buttons_text_color}; border: 2px solid ${appSettings.buttons_bg_color}; cursor: pointer;}
+                                        @media only screen and (min-width: 300px) and (max-width: 600px) {
+                                           .phone-no-email .phone{width: 100%; padding-bottom:0px;}
+                                           .phone-no-email .email{width:100%;}
+                                           .select-container .country-code{width:30%;}
+                                            .select-container .country-code select{
+                                                padding:0px;
+                                            }
+                                           .code.select-container .new.code-field{flex-basis:65%;}
+                                           .verify-code{flex-basis:34%;}
+
+                                           .verify-button.send-code-button{width:100%; margin-bottom:10px; order:0;}
+                                           .back, .resend{order:1;}
+
+                                        }
+                           </style>
+                        <div class="otp">
+                                <div class="phone-no-email">
+                                    <div class="phone">
+                                      <span class="eosh_heading" id="change-color"
+                                        >${appSettings.main_button_text}</span>
+                                    </div>
+                                    <div class="email">
+                                      <a href="https://${eoShShopDomain}/pages/associate-account" class="eosh_email_btn">${appSettings.link_existing_button_text} </a>
+                                    </div>
+                                </div>
+                                <div class="text-center eosh-error"></div>
+                                <div id="tel-div">
+
+                                  <div class="select-container">
+                                    <div class="country-code">
+                                        ${select}
+                                    </div>
+                                    <div class="number-field">
+                                      <input
+                                        type="tel"
+                                        id="phone-number"
+                                        name="phone"
+                                        class="eosh-phone-number"
+                                        placeholder="${appSettings.phone_no_field_text}"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div class="send-code-button">
+                                    <button id="sign-in-button"  class="send-button">${appSettings.send_code_button_text}</button>
+                                  </div>
+                                </div>
+                                <div id="code-div">
+
+                                   <div class="otp-show-number">
+                                        <p style="color:#000000;">${appSettings.otp_send_to_label_text}<span id="display-number"></span></p>
+                                      </div>
+                                    <div class="code select-container">
+                                        <div class="code-field">
+                                          <input type="text" id="code" pattern="\d*" maxlength="6" placeholder="${appSettings.code_field_text}" name="phone" placeholder="Enter Code" />
+                                        </div>
+                                    </div>
+                                      ${codeExpiration}
+                                      ${buttons}
+                                </div>
+                                <div id="pass-div" >
+                                        <div style="display:inline-flex">
+                                            <input type="password" id="reset-pass-eosh" placeholder="${appSettings.resetpassword_field_text}" class="eosh-input"><i class="fa fa-eye" aria-hidden="true" id="togglePassword"></i>
+                                        </div><br/><br/>
+                                        <input type="button" class="eosh-btn " value="Login" id="send-reset-pass">
+                                </div>
+                        </div>
+                       <div id="recaptcha-container"></div>`;    
+            }
+            if(pageUrl.includes('/associate-account')){
+                     
+                showFormForLinkingAccount();
+            }
+            if (!pageUrl.includes("/account/login") && !pageUrl.includes("/account/register") && !pageUrl.includes("/challenge") && $(".otp").length == 0) {
+                if (appSettings.enable_resend_code_button) {
+                    resend = `<input type="button" class="eosh-btn " value="${appSettings.resend_code_button_text}" id="resend-otp">`;
+                }
+                if (appSettings.enable_code_expiration) {
+                    codeExpiration = `<div class="otp-title">
+                                        <p style="color:${appSettings.buttons_bg_color};margin:1rem 0">${appSettings.time_remaning_label_text}<span id="time">${appSettings.code_expiration_time}:00</span></p>
+                                        ${resend}
+                                    </div>`;
+                } else {
+                    codeExpiration = `<div class="otp-title">
+                                        ${resend}
+                                    </div>`;
+                }
+
+                if (eoShShopDomain == "daily-needs-gurugram.myshopify.com") {
+                    select = `<select id="phone-number-country-code" class="eosh-input"> <option data-countryCode="IN" value="91">🇮🇳 (+91)</option> </select>`;
+                }
+                else if(eoShShopDomain == "dkthealth.myshopify.com"){
+                     select = `<select id="phone-number-country-code" class="eosh-input"> <option data-countryCode="PH" value="63">PH (+63)</option> </select>`;
+                } 
+                else {
+                        select = '<select id="phone-number-country-code" class="eosh-input"><option data-countryCode="US" value="1">US (+1)</option><option data-countryCode="GB" value="44">GB (+44)</option><option data-countryCode="DZ" value="213">DZ (+213)</option><option data-countryCode="AD" value="376">AD (+376)</option><option data-countryCode="AO" value="244">AO (+244)</option><option data-countryCode="AI" value="1264">AI (+1264)</option><option data-countryCode="AG" value="1268">AG (+1268)</option><option data-countryCode="AR" value="54">AR (+54)</option><option data-countryCode="AM" value="374">AM (+374)</option><option data-countryCode="AW" value="297">AW (+297)</option><option data-countryCode="AU" value="61">AU (+61)</option><option data-countryCode="AT" value="43">AT (+43)</option><option data-countryCode="AZ" value="994">AZ (+994)</option><option data-countryCode="BS" value="1242">BS (+1242)</option><option data-countryCode="BH" value="973">BH (+973)</option><option data-countryCode="BD" value="880">BD (+880)</option><option data-countryCode="BB" value="1246">BB (+1246)</option><option data-countryCode="BY" value="375">BY (+375)</option><option data-countryCode="BE" value="32">BE (+32)</option><option data-countryCode="BZ" value="501">BZ (+501)</option><option data-countryCode="BJ" value="229">BJ (+229)</option><option data-countryCode="BM" value="1441">BM (+1441)</option><option data-countryCode="BT" value="975">BT (+975)</option><option data-countryCode="BO" value="591">BO (+591)</option><option data-countryCode="BA" value="387">BA (+387)</option><option data-countryCode="BW" value="267">BW (+267)</option><option data-countryCode="BR" value="55">BR (+55)</option><option data-countryCode="BN" value="673">BN (+673)</option><option data-countryCode="BG" value="359">BG (+359)</option><option data-countryCode="BF" value="226">BF (+226)</option><option data-countryCode="BI" value="257">BI (+257)</option><option data-countryCode="KH" value="855">KH (+855)</option><option data-countryCode="CM" value="237">CM (+237)</option><option data-countryCode="CA" value="1">CA (+1)</option><option data-countryCode="CV" value="238">CV (+238)</option><option data-countryCode="KY" value="1345">KY (+1345)</option><option data-countryCode="CF" value="236">CF (+236)</option><option data-countryCode="CL" value="56">CL (+56)</option><option data-countryCode="CN" value="86">CN (+86)</option><option data-countryCode="CO" value="57">CO (+57)</option><option data-countryCode="KM" value="269">KM (+269)</option><option data-countryCode="CG" value="242">CG (+242)</option><option data-countryCode="CK" value="682">CK (+682)</option><option data-countryCode="CR" value="506">CR (+506)</option><option data-countryCode="HR" value="385">HR (+385)</option><option data-countryCode="CY" value="90">CY - N (+90)</option><option data-countryCode="CY" value="357">CY - S (+357)</option><option data-countryCode="CZ" value="420">CZ (+420)</option><option data-countryCode="DK" value="45">DK (+45)</option><option data-countryCode="DJ" value="253">DJ (+253)</option><option data-countryCode="DM" value="1809">DM (+1809)</option><option data-countryCode="DO" value="1809">DO (+1809)</option><option data-countryCode="EC" value="593">EC (+593)</option><option data-countryCode="EG" value="20">EG (+20)</option><option data-countryCode="SV" value="503">SV (+503)</option><option data-countryCode="GQ" value="240">GQ (+240)</option><option data-countryCode="ER" value="291">ER (+291)</option><option data-countryCode="EE" value="372">EE (+372)</option><option data-countryCode="ET" value="251">ET (+251)</option><option data-countryCode="FK" value="500">FK (+500)</option><option data-countryCode="FO" value="298">FO (+298)</option><option data-countryCode="FJ" value="679">FJ (+679)</option><option data-countryCode="FI" value="358">FI (+358)</option><option data-countryCode="FR" value="33">FR (+33)</option><option data-countryCode="GF" value="594">GF (+594)</option><option data-countryCode="PF" value="689">PF (+689)</option><option data-countryCode="GA" value="241">GA (+241)</option><option data-countryCode="GM" value="220">GM (+220)</option><option data-countryCode="GE" value="7880">GE (+7880)</option><option data-countryCode="DE" value="49">DE (+49)</option><option data-countryCode="GH" value="233">GH (+233)</option><option data-countryCode="GI" value="350">GI (+350)</option><option data-countryCode="GR" value="30">GR (+30)</option><option data-countryCode="GL" value="299">GL (+299)</option><option data-countryCode="GD" value="1473">GD (+1473)</option><option data-countryCode="GP" value="590">GP (+590)</option><option data-countryCode="GU" value="671">GU (+671)</option><option data-countryCode="GT" value="502">GT (+502)</option><option data-countryCode="GN" value="224">GN (+224)</option><option data-countryCode="GW" value="245">GW (+245)</option><option data-countryCode="GY" value="592">GY (+592)</option><option data-countryCode="HT" value="509">HT (+509)</option><option data-countryCode="HN" value="504">HN (+504)</option><option data-countryCode="HK" value="852">HK (+852)</option><option data-countryCode="HU" value="36">HU (+36)</option><option data-countryCode="IS" value="354">IS (+354)</option><option data-countryCode="IN" value="91">IN (+91)</option><option data-countryCode="ID" value="62">ID (+62)</option><option data-countryCode="IQ" value="964">IQ (+964)</option><option data-countryCode="IR" value="98">IR (+98)</option><option data-countryCode="IE" value="353">IE (+353)</option><option data-countryCode="IL" value="972">IL (+972)</option><option data-countryCode="IT" value="39">IT (+39)</option><option data-countryCode="JM" value="1876">JM (+1876)</option><option data-countryCode="JP" value="81">JP (+81)</option><option data-countryCode="JO" value="962">JO (+962)</option><option data-countryCode="KZ" value="7">KZ (+7)</option><option data-countryCode="KE" value="254">KE (+254)</option><option data-countryCode="KI" value="686">KI (+686)</option><option data-countryCode="KP" value="850">KP (+850)</option><option data-countryCode="KR" value="82">KR (+82)</option><option data-countryCode="KW" value="965">KW (+965)</option><option data-countryCode="KG" value="996">KG (+996)</option><option data-countryCode="LA" value="856">LA (+856)</option><option data-countryCode="LV" value="371">LV (+371)</option><option data-countryCode="LB" value="961">LB (+961)</option><option data-countryCode="LS" value="266">LS (+266)</option><option data-countryCode="LR" value="231">LR (+231)</option><option data-countryCode="LY" value="218">LY (+218)</option><option data-countryCode="LI" value="417">LI (+417)</option><option data-countryCode="LT" value="370">LT (+370)</option><option data-countryCode="LU" value="352">LU (+352)</option><option data-countryCode="MO" value="853">MO (+853)</option><option data-countryCode="MK" value="389">MK (+389)</option><option data-countryCode="MG" value="261">MG (+261)</option><option data-countryCode="MW" value="265">MW (+265)</option><option data-countryCode="MU" value="230">MU (+230)</option><option data-countryCode="MY" value="60">MY (+60)</option><option data-countryCode="MV" value="960">MV (+960)</option><option data-countryCode="ML" value="223">ML (+223)</option><option data-countryCode="MT" value="356">MT (+356)</option><option data-countryCode="MH" value="692">MH (+692)</option><option data-countryCode="MQ" value="596">MQ (+596)</option><option data-countryCode="MR" value="222">MR (+222)</option><option data-countryCode="YT" value="269">YT (+269)</option><option data-countryCode="MX" value="52">MX (+52)</option><option data-countryCode="FM" value="691">FM (+691)</option><option data-countryCode="MD" value="373">MD (+373)</option><option data-countryCode="MC" value="377">MC (+377)</option><option data-countryCode="MN" value="976">MN (+976)</option><option data-countryCode="MS" value="1664">MS (+1664)</option><option data-countryCode="MA" value="212">MA (+212)</option><option data-countryCode="MZ" value="258">MZ (+258)</option><option data-countryCode="MM" value="95">MM (+95)</option><option data-countryCode="NA" value="264">NA (+264)</option><option data-countryCode="NR" value="674">NR (+674)</option><option data-countryCode="NP" value="977">NP (+977)</option><option data-countryCode="NL" value="31">NL (+31)</option><option data-countryCode="NC" value="687">NC (+687)</option><option data-countryCode="NZ" value="64">NZ (+64)</option><option data-countryCode="NI" value="505">NI (+505)</option><option data-countryCode="NE" value="227">NE (+227)</option><option data-countryCode="NG" value="234">NG (+234)</option><option data-countryCode="NU" value="683">NU (+683)</option><option data-countryCode="NF" value="672">NF (+672)</option><option data-countryCode="NP" value="670">NP (+670)</option><option data-countryCode="NO" value="47">NO (+47)</option><option data-countryCode="OM" value="968">OM (+968)</option><option data-countryCode="PK" value="92">PK (+92)</option><option data-countryCode="PW" value="680">PW (+680)</option><option data-countryCode="PA" value="507">PA (+507)</option><option data-countryCode="PG" value="675">PG (+675)</option><option data-countryCode="PY" value="595">PY (+595)</option><option data-countryCode="PE" value="51">PE (+51)</option><option data-countryCode="PH" value="63">PH (+63)</option><option data-countryCode="PL" value="48">PL (+48)</option><option data-countryCode="PT" value="351">PT (+351)</option><option data-countryCode="PR" value="1787">PR (+1787)</option><option data-countryCode="QA" value="974">QA (+974)</option><option data-countryCode="RE" value="262">RE (+262)</option><option data-countryCode="RO" value="40">RO (+40)</option><option data-countryCode="RU" value="7">RU (+7)</option><option data-countryCode="RW" value="250">RW (+250)</option><option data-countryCode="SM" value="378">SM (+378)</option><option data-countryCode="ST" value="239">ST (+239)</option><option data-countryCode="SA" value="966">SA (+966)</option><option data-countryCode="SN" value="221">SN (+221)</option><option data-countryCode="CS" value="381">CS (+381)</option><option data-countryCode="SC" value="248">SC (+248)</option><option data-countryCode="SL" value="232">SL (+232)</option><option data-countryCode="SG" value="65">SG (+65)</option><option data-countryCode="SK" value="421">SK (+421)</option><option data-countryCode="SI" value="386">SI (+386)</option><option data-countryCode="SB" value="677">SB (+677)</option><option data-countryCode="SO" value="252">SO (+252)</option><option data-countryCode="ZA" value="27">ZA (+27)</option><option data-countryCode="ES" value="34">ES (+34)</option><option data-countryCode="LK" value="94">LK (+94)</option><option data-countryCode="SH" value="290">SH (+290)</option><option data-countryCode="KN" value="1869">KN (+1869)</option><option data-countryCode="SC" value="1758">SC (+1758)</option><option data-countryCode="SR" value="597">SR (+597)</option><option data-countryCode="SD" value="249">SD (+249)</option><option data-countryCode="SZ" value="268">SZ (+268)</option><option data-countryCode="SE" value="46">SE (+46)</option><option data-countryCode="CH" value="41">CH (+41)</option><option data-countryCode="TW" value="886">TW (+886)</option><option data-countryCode="TJ" value="992">TJ (+992)</option><option data-countryCode="TH" value="66">TH (+66)</option><option data-countryCode="TG" value="228">TG (+228)</option><option data-countryCode="TO" value="676">TO (+676)</option><option data-countryCode="TT" value="1868">TT (+1868)</option><option data-countryCode="TN" value="216">TN (+216)</option><option data-countryCode="TR" value="90">TR (+90)</option><option data-countryCode="TM" value="993">TM (+993)</option><option data-countryCode="TC" value="1649">TC (+1649)</option><option data-countryCode="TV" value="688">TV (+688)</option><option data-countryCode="UG" value="256">UG (+256)</option><option data-countryCode="UA" value="380">UA (+380)</option><option data-countryCode="AE" value="971">AE (+971)</option><option data-countryCode="UY" value="598">UY (+598)</option><option data-countryCode="UZ" value="998">UZ (+998)</option><option data-countryCode="VU" value="678">VU (+678)</option><option data-countryCode="VA" value="379">VA (+379)</option><option data-countryCode="VE" value="58">VE (+58)</option><option data-countryCode="VN" value="84">VN (+84)</option><option data-countryCode="VG" value="1">VG - British (+1)</option><option data-countryCode="VI" value="1">VI - US (+1)</option><option data-countryCode="WF" value="681">WF (+681)</option><option data-countryCode="YE" value="969">YE (N)(+969)</option><option data-countryCode="YE" value="967">YE (S)(+967)</option><option data-countryCode="ZM" value="260">ZM (+260)</option><option data-countryCode="ZW" value="263">ZW (+263)</option><option data-countryCode="TZ" value="255">TZ (+255)</option></select>';
+                }
+                form = `<style>
+                            .otp{margin:1rem auto;width:fit-content;text-align:center}
+                            #phone-number{width:calc(70%);border-left:1px solid #000}
+                            .otp-heading{font-size:1rem}
+                            .otp-title{display:flex;justify-content:space-between;align-items:center;margin-top:4%}
+                            #reset-pass-eosh{width:100%}
+                            #code-div,#pass-div{display:none}
+                            #display-number,#time{font-weight:700}
+                            #phone-number-country-code{width:calc(30%);padding: 0 0rem 0 1rem;}
+                            #back-btn{float:right}
+                            #resend-otp{margin:1rem 0 1rem 2rem;float:right}
+                            #pass-div i{margin-left:-10%;cursor:pointer;font-size:22px;margin-top:6%}
+                            #back-btn,#confirm-code{margin-top:5%}
+                            #confirm-code{float:left}
+                            .eosh-input{width:100%;height:50px;padding:5px 20px;border:1px solid #e3e3e3;border-radius:4px;background:#fafafa;font-size:15px;font-weight:300;color:#000;-webkit-appearance:none;-moz-appearance:none;appearance:none}
+                            .eosh-btn{width:auto!important;border-radius:3px;padding:10px 21px;background-color:transparent;font-family:"Questa Sans",sans-serif;font-size:15px;font-weight:500;line-height:1.3;text-decoration:none;vertical-align:middle;text-align:center;cursor:pointer;-webkit-box-shadow:none;box-shadow:none;-webkit-appearance:none;-moz-appearance:none;appearance:none;-webkit-transition:border .4s,background .4s,color .4s;-o-transition:border .4s,background .4s,color .4s;transition:border .4s,background .4s,color .4s}
+                        </style>
+                        <style>
+                            #sign-in-button, #resend-otp, #confirm-code, #send-reset-pass, #back-btn {background-color:${appSettings.buttons_bg_color}; color:${appSettings.buttons_text_color}; border: 2px solid ${appSettings.buttons_bg_color}; cursor: pointer;}
+                        </style>
+                        <div class="otp">
+                            <h1 class="otp-heading">${appSettings.main_button_text}</h1>
+                            <div class="error-message-pn"></div>
+                            <div class="success-message-pn"></div>
+                            <div id="tel-div">
+                                <div style="display:flex;">
+                                    ${select}
+                                    <input type="tel" id="phone-number" placeholder="${appSettings.phone_no_field_text}" class="eosh-input">
+                                </div>
+                                <div id="recaptcha-container"></div><br>
+                                <input type="button" class="eosh-btn " value="${appSettings.send_code_button_text}" id="sign-in-button"><br>
+                            </div>
+                            <div class="error-message-cc"></div>
+                            <div class="success-message-cc"></div>
+                            <div id="code-div">
+                                <p style="margin-top:auto;color:${appSettings.buttons_bg_color};" class="text-center">${appSettings.otp_send_to_label_text}<span id="display-number"></span></p>
+                                <input type="text" id="code" pattern="\d*" maxlength="6" placeholder="${appSettings.code_field_text}" class="eosh-input ">
+                                ${codeExpiration}
+                                <input type="button" class="eosh-btn " value="${appSettings.verify_code_button_text}" id="confirm-code">
+                                <input type="button" class="eosh-btn " value="${appSettings.back_button_text}" id="back-btn">
+                            </div>
+                            <div id="pass-div" >
+                                <div style="display:inline-table">
+                                    <input type="password" id="reset-pass-eosh" placeholder="${appSettings.resetpassword_field_text}" class="eosh-input"><i class="fa fa-eye" aria-hidden="true" id="togglePassword"></i>
+                                </div><br/><br/>
+                                <input type="button" class="eosh-btn " value="Login" id="send-reset-pass">
+                            </div>
+                        </div>`;
+                if(eoShShopDomain != 'niconii.myshopify.com' && appSettings['enable_app'] == "1"){
+                    if(eoShShopDomain =='nirakle.myshopify.com'){
+                        $("form[action*='/account/login']").parent().prepend(form);
+                        $("#phone-number").css('height','50px');
+                    }else{
+                        if(eoShShopDomain =='studio-iris-india.myshopify.com' && (window.location.href.includes("/account/login") == false  || window.location.href.includes("/account/register") == false)){
+                            $("form[action*='/account/login'] :last").parent().append(form);
+                        }else{
+                            $("form[action*='/account/login']").parent().append(form);
+                        } 
+                    }
+                }
+            }
+            if(eoShShopDomain == "dkthealth.myshopify.com" && $(".otp").length == 1){
+                    $('#phone-number-country-code').remove();
+                     select = `<select id="phone-number-country-code" class="eosh-input"> <option data-countryCode="PH" value="63">PH (+63)</option> </select>`;
+                     $(select).insertBefore("#phone-number");
+            }
+            if(eoShShopDomain == "nutrisoul-store.myshopify.com"){
+
+                if(window.location.href.includes("/account/register")){
+                     
+                     $('#phone-number-country-code').removeClass('select2-hidden-accessible');
+                     $('#phone-number-country-code').next('span').remove();
+                     $('#confirm-code').css('margin-bottom','50px');
+                }
+                $('form').css('margin-bottom','50px');
+                $('.eosh-btn').css({
+                                       'background-color' : '#348741',
+                                       'font-size' : 'inherit',
+                                       'font-style' : 'normal',
+                                       'font-weight':  'normal',
+                                       'font-family':  'Roboto, sans-serif',
+                                       'border'     : '0px solid',
+                                    });
+                $(".eosh-btn").hover(function(){
+                            $(this).css("background-color", "#4F8A10");
+                            }, function(){
+                            $(this).css("background-color", "#348741");
+                });
+            }
+            if(eoShShopDomain == "nature-and-thought.myshopify.com"){
+                
+                $('.otp').css('width','max-content');
+            }
+            if (appSettings.hide_login_form_at_account && !pageUrl.includes("/challenge")) {
+                $("form[action*='/account/login']").hide();
+                $("form[action='/account']").hide();
+
+                if(eoShShopDomain == "www-sstmart-com.myshopify.com"){
+                     
+                     $('div.otp').show();
+                }
+
+                if ($("#customer_login_guest").length) {
+                    $("#customer_login_guest").show();
+                }
+            }
+            if ($(".otp").length > 0) {
+                if (!appSettings.enable_resend_code_button && scopeAvailableForPage == "true") {
+                    
+                    $("#resend-otp").remove();
+                }
+                if (!appSettings.enable_code_expiration && scopeAvailableForPage == "true") {
+                    $(".otp-title p").remove();
+                    if (appSettings.enable_resend_code_button) {
+                        $("#resend-otp").css({ 'margin': '1rem 0 1rem 0rem' });
+                    }
+                }
+
+                if(eoShShopDomain == "www-sstmart-com.myshopify.com"){
+                     
+                     $('div.otp').show();
+                }
+
+                if (typeof (firebase) != 'undefined' && firebase.apps.length) {
+                    if (window.location.pathname.indexOf('/account/login') > -1 || window.location.pathname.indexOf('/account/register') > -1) {
+                        firebase.app().delete().then(function () {
+                            firebase.initializeApp(fireBaseConfig);
+                        });
+                        if (fireBaseConfig.hasOwnProperty('measurement_id')) {
+                            firebase.analytics();
+                        }
+                    }
+                } else {
+                    firebase.initializeApp(fireBaseConfig);
+                    if (fireBaseConfig.hasOwnProperty('measurement_id')) {
+                        firebase.analytics();
+                    }
+                }
+                firebase.auth().useDeviceLanguage();
+                window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+                    'size': 'invisible',
+                    'callback': function (response) {
+                    },
+                    'expired-callback': function () {
+                        alert("please refresh the page again, session expire");
+                    }
+                });
+
+                recaptchaVerifier.render();
+
+                if ((eoShShopDomain == "studio-iris-india.myshopify.com" || eoShShopDomain == "origincostomes.myshopify.com" || eoShShopDomain == "machilibazaar.myshopify.com") && !pageUrl.includes("/account/register") && !pageUrl.includes("/account/login")) {
+                    len = $(".otp").length;
+                    count = 0;
+                    if (len > 1) {
+                        for (let i = 0; i < len - 1; i++) {
+                            $(".otp")[i - count].remove();
+                            count++;
+                        }
+                    }
+                } else if (eoShShopDomain == "fashionstockstore1.myshopify.com" && !pageUrl.includes("/account/register") && !pageUrl.includes("/account/login")) {
+                    $(".otp")[1].remove();
+                } else if(eoShShopDomain == "nature-and-thought.myshopify.com" && !pageUrl.includes("/account/register") && !pageUrl.includes("/account/login")){
+                    $(".otp")[1].remove();
+                } 
+
+                autoCountrySelect();
+                themeFormCompatibility();
+
+                $("#sign-in-button, #confirm-code").css({ "cursor": "pointer" });
+                $("#sign-in-button").prop("disabled", false);
+            }
+        }
+        function showFormForLinkingAccount(){
+            if(appSettings) {
+                $('#sign-in-button-associate,#passwordVerify,#emailVerify,#associated-account').css({"background-color":`${appSettings.buttons_bg_color}`, "color": `${appSettings.buttons_text_color}`});
+                $('#display-number').parent().parent().remove();
+                $('#display-email').parent().parent().remove();
+                $('.time-remaining:first > p:first').remove();
+                $(`<div class='left-align otp'><p style="color:${appSettings.buttons_bg_color};">${appSettings.otp_send_to_label_text}<span id='display-email'></span></p></div>`).insertAfter( ".eosh-error-email" );
+                $(`<div class='left-align otp'><p style="color:${appSettings.buttons_bg_color};">${appSettings.otp_send_to_label_text}<span id='display-number'></span></p></div>`).insertAfter( ".eoshLogin >.eosh-error" );
+                $(`<p style="color:${appSettings.buttons_bg_color};">${appSettings.time_remaning_label_text}<span id='time'>${appSettings.code_expiration_time}:00</span></p>`).insertBefore(".time-remaining:first>p");
+                $('.phone >a:first').text(appSettings.main_button_text);
+                $('.email >a:first').text(appSettings.link_existing_button_text);
+                $("#eoshEmailCustomer").attr("placeholder",appSettings.email_field_text);
+                $("#phone-number").attr("placeholder",appSettings.phone_no_field_text);
+                $('#sign-in-button-associate').text(appSettings.link_exist_send_code_button_text);
+                $('#passwordCode,#emailCode').attr("placeholder",appSettings.code_field_text);
+                $('#resend-otp-number').parent().remove();
+                $(`<p>${appSettings.link_exist_pretext_text} <a href='#' id='resend-otp-number'><span>${appSettings.link_exist_resend_code_button_text}</span></a></p>`).insertAfter(".time-remaining:first >p");
+                $('#passwordVerify').text(appSettings.link_exist_verify_Phone_button_text);
+                $('#emailVerify').text(appSettings.link_exist_verify_email_button_text);
+                $('.time-remaining:last >p').remove();            
+                $(".time-remaining:last").append(`<p>${appSettings.link_exist_pretext_text} <a href='#' id='resend-otp-email'><span>${appSettings.link_exist_resend_code_button_text}</span></a></p>`);
+                $('#back-btn-associate').text(appSettings.back_button_text);
+                $('#associated-account').text(appSettings.link_exist_send_verification_button_text);
+                $('#reset-pass-eosh').attr("placeholder",appSettings.resetpassword_field_text);
+            }   
+            if(!appSettings.enable_code_expiration) {
+
+                 $('#time').parent().hide();
+            } 
+            if (!appSettings.enable_resend_code_button) {
+
+                 $('#resend-otp-number').parent().hide();
+            }                    
+        }
+        function associatedAccount(){
+           $.ajax({
+                url: eoShBaseUrl + 'api/customer/associatedNumberWithEmail',
+                type: 'GET',
+                dataType: 'json',
+                crossDomain: true,
+                data: {
+                    'phoneNumber': eoShPhoneNumber, 'domain': eoShShopDomain,'customerId':eoShexistPhoneNumber
+                },
+                success: function (response) {
+                  console.log(response);
+                      if (response.msg) {
+                            $(".eosh-error-pass-div").hide();
+                            $('.eosh-error-pass-div').css({
+                                'color': 'red'
+                            });
+                            $('.eosh-error-pass-div').html(`${response.error}`).show();
+                            if (response.error_no == 2) {
+                                $("#pass-div").show();
+                            }
+                            $("#code-div").hide();
+                            $('.eoshBtn').hide();
+                            $('.eoshLogin').hide();
+                      }                      
+                    
+                },
+                error: function (reject) {
+                    console.log(reject);
+                }
+            });
+        }
+        async function submitPhoneNumberAuth() {
+            let pageUrl = $(location).attr("href");
+            eoShEmailAddress = $('#eoshEmailCustomer').val();
+            let countryCode = $('#phone-number-country-code').find(":selected").val();
+            eoShPhoneNumber = ($("#phone-number").val()) ? $("#phone-number").val() : $(".eosh-phone-number").val();
+            eoShPhoneNumber = eoShPhoneNumber.replace(/\s/g, '');
+            if (eoShPhoneNumber.charAt(0) == '0') {
+                eoShPhoneNumber = setCharAt(eoShPhoneNumber, 0, '');
+            }
+            eoShPhoneNumber = '+' + countryCode + eoShPhoneNumber;
+            const appVerifier = window.recaptchaVerifier;
+            let rndNumber = getRndInteger(1000, 100);
+            await delay(rndNumber);
+            $('.error-message-pn').hide();
+            firebase.auth().signInWithPhoneNumber(eoShPhoneNumber, appVerifier)
+                .then((confirmationResult) => {
+                    window.confirmationResult = confirmationResult;
+                    if (pageUrl.includes('/associate-account')){
+                            if(eoShResend == false){
+                                 let randomNumber =randomNumberGenerate();
+                                 var setOtpCodeTolocalStorage=localStorage.setItem('otpCode', randomNumber);
+                                 sendEmail(randomNumber);
+                            }
+                            $('.otp:first').hide();
+                            $("#display-number").text(eoShPhoneNumber);
+                            $("#display-email").text(eoShEmailAddress);
+                            if (appSettings.enable_code_expiration) {
+                                if (appSettings.enable_resend_code_button) {
+                    
+                                    $("#resend-otp-number").css({'pointer-events':'none','cursor': 'default'});
+                                }
+                                let timer2 = `${appSettings.code_expiration_time}:00`;
+                                eoShInterval = setInterval(function () {
+                                    let timer = timer2.split(':');
+                                    let minutes = parseInt(timer[0], 10);
+                                    let seconds = parseInt(timer[1], 10);
+                                    --seconds;
+                                    minutes = (seconds < 0) ? --minutes : minutes;
+                                    seconds = (seconds < 0) ? 59 : seconds;
+                                    seconds = (seconds < 10) ? '0' + seconds : seconds;
+                                    $("#time").text(minutes + ':' + seconds);
+                                    timer2 = minutes + ':' + seconds;
+                                    if (minutes < 0) {
+                                        clearInterval(eoShInterval);
+                                        showMessages("error", eoshMessages.code_expiration_time_error, 30000);
+                                        $("#time").text("00:00");
+                                        if (appSettings.enable_resend_code_button) {
+                                           
+                                            $("#resend-otp-number").css({'pointer-events':'auto','cursor': 'pointer'});
+                                        }
+                                        $('#passwordCode').prop('readonly', true);
+                                        $('#associated-account').prop("disabled", true);
+                                    }
+                                }, 1000);
+                            } else {
+                                if (appSettings.enable_resend_code_button) {
+                                   
+                                   $("#resend-otp-number").css({'pointer-events':'auto','cursor': 'pointer'});
+                                }
+                            }
+
+                                    $("#code-div").show();
+                                    $('#passwordCode').prop('readonly', false);
+                                    $('#passwordCode').focus();
+                                    $("#associated-account").prop("disabled", false);
+                                    $('#gscollectionbottom').remove();
+                                    $('.eoshLogin').show();
+                                    $('.eoshBtn').show();
+                                    showMessages("success", eoshMessages.success_verification_text, 5000);
+                                    $('.eosh-error-email').css({
+                                        'color': 'green'
+                                    });
+                                    
+                                    if(eoShResend == false){
+                                        $('.eosh-error-email').html(eoshMessages.success_verification_Email_text).show();
+                                        setTimeout(function () {
+                                                  $('.eosh-error-email').fadeOut();
+                                        }, 5000);
+                                    }
+                    }
+                    else{
+
+                        $("#tel-div").hide();
+                        $("#display-number").text(eoShPhoneNumber);
+                        if (eoShShopDomain == "clinikally.myshopify.com") {
+                            $(".h-mob").text("Enter OTP");
+                        }
+                        if (eoShShopDomain == "fabbricaocchiali.myshopify.com") {
+                            $("#tel-div").show();
+                        }
+                        if (appSettings.enable_code_expiration) {
+                            if (appSettings.enable_resend_code_button) {
+                                $('#resend-otp').prop("disabled", true);
+                                $('#resend-otp').css("pointer-events","none");
+                            }
+                            let timer2 = `${appSettings.code_expiration_time}:00`;
+                            eoShInterval = setInterval(function () {
+                                let timer = timer2.split(':');
+                                let minutes = parseInt(timer[0], 10);
+                                let seconds = parseInt(timer[1], 10);
+                                --seconds;
+                                minutes = (seconds < 0) ? --minutes : minutes;
+                                seconds = (seconds < 0) ? 59 : seconds;
+                                seconds = (seconds < 10) ? '0' + seconds : seconds;
+                                if (eoShShopDomain == "fabbricaocchiali.myshopify.com") {
+                                    $('#sign-in-button').val(minutes + ':' + seconds);
+                                } else {
+                                    $("#time").text(minutes + ':' + seconds);
+                                }
+                                timer2 = minutes + ':' + seconds;
+                                if (minutes < 0) {
+                                    clearInterval(eoShInterval);
+                                    $('.error-message-pn').addClass('text-center errors note form-message form-error form-message--error');
+                                    if(eoShShopDomain == "buymevip.myshopify.com"){
+
+                                      $('.error-message-pn').html('<p style="color:black"> Timeout send code again</p>').show();
+                                    }else{
+                                        $('.error-message-pn').html('<p> Timeout send code again</p>').show();
+                                    }
+                                    if (eoShShopDomain == "fabbricaocchiali.myshopify.com") {
+                                        $("#sign-in-button").prop("disabled", false);
+                                        $('#sign-in-button').val(eoshMessages.send_code_button_text);
+                                    } else {
+                                        $("#time").text("00:00");
+                                    }
+                                    if (appSettings.enable_resend_code_button) {
+                                        $('#resend-otp').prop("disabled", false);
+                                        $('#resend-otp').css("pointer-events","auto");
+                                    }
+                                    $('#code').prop('readonly', true);
+                                    $('#confirm-code').prop("disabled", true);
+                                }
+                            }, 1000);
+                        } else {
+                            if (appSettings.enable_resend_code_button) {
+                                $('#resend-otp').prop("disabled", false);
+                                $('#resend-otp').css("pointer-events","auto");
+
+                            }
+                        }
+                        $("#code-div").show();
+                        $('#code').prop('readonly', false);
+                        $('#code').focus();
+                        $("#confirm-code").prop("disabled", false);
+                        if (eoShShopDomain == "fabbricaocchiali.myshopify.com") {
+                            $('.success-message-pn').html('<p class="text-center green" > ' + eoshMessages.success_verification_text + ' </p>').show();
+                        } else if (eoShShopDomain != "clinikally.myshopify.com") {
+                            $('.success-message-pn').html('<div class="text-center" style="color:green"><h4> ' + eoshMessages.success_verification_text + ' </h4></div>').show();
+                        }
+                        setTimeout(function () {
+                            $('.success-message-pn').hide();
+                        }, 3000);
+                    }
+                }).catch((error) => {
+                    $('.error-message-pn').addClass('text-center errors note form-message form-error form-message--error');
+                    if (error['message'] == "TOO_SHORT") {
+                        if(eoShShopDomain == "buymevip.myshopify.com"){
+                           $('.error-message-pn').html('<p  style="color:black;">' + eoshMessages.phone_num_error_text + ' too short</p>').show();
+                        
+                        }else{
+                            $('.error-message-pn').html('<p>' + eoshMessages.phone_num_error_text + ' too short</p>').show();
+                        }
+                    } else if (error['code'] == "auth/too-many-requests") {
+                        if(eoShShopDomain == "buymevip.myshopify.com"){
+                          
+                          $('.error-message-pn').html('<p style="color:black;"> ' + eoshMessages.to_many_request_error_text + ' </p>').show();
+                        }else{
+                           $('.error-message-pn').html('<p> ' + eoshMessages.to_many_request_error_text + ' </p>').show();
+                        }
+                    } else if (error['code'] == "auth/invalid-phone-number") {
+                        if(eoShShopDomain == "buymevip.myshopify.com"){
+                            
+                            $('.error-message-pn').html('<p style="color:black;">' + eoshMessages.phone_num_error_text + '</p>').show();
+                        }else{
+                              $('.error-message-pn').html('<p>' + eoshMessages.phone_num_error_text + '</p>').show();
+                        }
+                    } else {
+                        if(eoShShopDomain == "buymevip.myshopify.com"){
+
+                           $('.error-message-pn').html('<p style="color:black;"> ' + error['message'] + ' </p>').show();
+                        }else{
+
+                            $('.error-message-pn').html('<p> ' + error['message'] + ' </p>').show();
+                        }
+                    }
+                    setTimeout(function () {
+                        $('.error-message-pn').hide();
+                        $('.error-message-pn').removeClass('text-center errors note form-message form-error form-message--error');
+                    }, 5000);
+                    if (eoShShopDomain == "whatsapp-discuss.myshopify.com") {
+                        $("#register-with-otp").prop("disabled", false);
+                        $("#register-div").show();
+                    }
+                    $("#sign-in-button").prop("disabled", false);
+                    $("#sign-in-button-associate").prop("disabled", false);
+                });
+        }
+        async function submitPhoneNumberAuthCode() {
+            let pageUrl = $(location).attr("href");
+            if (pageUrl.includes('/associate-account')) {
+                let passCode=$('#passwordCode').val();
+                if (passCode){
+                        let rndNumber = getRndInteger(1000, 100);
+                        await delay(rndNumber);
+                        window.confirmationResult.confirm(passCode)
+                        .then(function (result) {
+                            $('.eosh-error').html('<div style="width: 100%; float: none;" id="gscollectionbottom"><center><img style="margin-top: 10px;" src="https://gravity-apps.com/shopify/media/loader.gif"></center></div>').show();
+                            if (appSettings.enable_code_expiration) {
+                                clearInterval(eoShInterval);
+                            }
+                            eoShphoneNumberStatus=true;
+                            $('#gscollectionbottom').remove();
+                            $('#passwordCode').prop('readonly', true);
+                            $('#passwordVerify').text('Verified');
+                            $('#passwordVerify').prepend('<img  width="20" src="'+eoShBaseUrl+'assets/tick.png" /><span>&nbsp;&nbsp;</span>');
+                            $('#passwordVerify').css('background-color','#007532');
+
+                            showMessages("success",'Phone number OTP Verified', 3000);
+                        }).catch(function (error) {
+                            $('#gscollectionbottom').remove();
+                            showMessages("error", eoshMessages.code_error_text, 3000);
+                            $("#passwordVerify").prop("disabled", false);
+                            $('#passwordCode').prop('readonly', false);
+                            $('#passwordCode').val('');
+                        });
+                }else{
+
+                    $("#passwordVerify").prop("disabled", false);
+                    $('#passwordCode').prop('readonly', false);
+                    $('#passwordCode').val('');
+                    showMessages("error", eoshMessages.code_error_text, 3000);
+                    $("#confirm-code").prop("disabled", false);
+                }
+            }
+            else{
+                  let code = $("#code").val();
+                    if (code) {
+                        let rndNumber = getRndInteger(1000, 100);
+                        await delay(rndNumber);
+                        window.confirmationResult.confirm(code)
+                            .then(function (result) {
+                                $('.success-message-cc').html('<div style="width: 100%; float: none;" id="gscollectionbottom"><center><img style="margin-top: 10px;" src="https://gravity-apps.com/shopify/media/loader.gif"></center></div>').show();
+                                if (appSettings.enable_code_expiration) {
+                                    clearInterval(eoShInterval);
+                                }
+                                $('#sign-in-button').val(eoshMessages.send_code_button_text);
+                                if (eoShShopDomain == "whatsapp-discuss.myshopify.com") {
+                                    if ($(location).attr("href").includes('/account/register')) {
+                                        createCustomer($("#pass-eosh").val());
+                                    } else if ($(location).attr("href").includes('/account/login') && eoShPassReset) {
+                                        $.when(isPhoneNumberRegister(eoShPhoneNumber)).done(function (response) {
+                                            $("#code-div").hide();
+                                            $("#gscollectionbottom").remove();
+                                            if (response.existing) {
+                                                $("#pass-div").show();
+                                            } else {
+                                                $("#phone-pass-div").show();
+                                                $("#tel-div").show();
+                                                $('.error-message-pn').addClass('text-center errors');
+                                                $('.error-message-pn').html('<p> No account associated with this Phone Number </p>').show();
+                                                setTimeout(function () {
+                                                    $('.error-message-pn').hide();
+                                                    $('.error-message-pn').removeClass('text-center errors');
+
+                                                }, 3000);
+                                                eoShPassReset = false;
+                                                $("#sign-in-button").prop("disabled", false);
+                                            }
+                                        });
+                                    } else {
+                                        createCustomer(null);
+                                    }
+                                } else if (eoShShopDomain == "peyango.myshopify.com") {
+                                    if ($(location).attr("href").includes('/products')) {
+                                        $.when(isPhoneNumberVerify(eoShPhoneNumber)).done(function (response) {
+                                            $("#gscollectionbottom").remove();
+                                            if (response.exist) {
+                                                $("#bid_amount").prop("disabled", false);
+                                                $(".otp").hide();
+                                                $("#place_my_bid").text("Place Bid");
+                                                $("#bid_amount").css({ "cursor": "default" });
+                                            } else {
+                                                $("#tel-div").show();
+                                                $("#code-div").hide();
+                                                $("#sign-in-button").prop("disabled", false);
+                                                $("#confirm-code").prop("disabled", false);
+                                                $('.error-message-pn').addClass('text-center');
+                                                $('.error-message-pn').html('<p> Enter phone number which is assosiated with your account </p>').show();
+                                                setTimeout(function () {
+                                                    $('.error-message-pn').hide();
+                                                    $('.error-message-pn').removeClass('text-center');
+                                                }, 5000);
+                                            }
+                                        });
+                                    } else {
+                                        createCustomer(null);
+                                    }
+                                } else {
+                                    createCustomer(null);
+                                }
+                            }).catch(function (error) {
+                                $('.error-message-cc').addClass('text-center errors note form-message form-error form-message--error');
+                                if(eoShShopDomain == "buymevip.myshopify.com"){
+                                   $('.error-message-cc').html('<p style="color:black;"> ' + eoshMessages.code_error_text + ' </p>').show();
+                                }else{
+                                    $('.error-message-cc').html('<p style="color:red;"> ' + eoshMessages.code_error_text + ' </p>').show();
+                                } 
+                                setTimeout(function () {
+                                    $('.error-message-cc').hide();
+                                    $('.error-message-cc').removeClass('text-center errors note form-message form-error form-message--error');
+                                }, 3000);
+                                $("#confirm-code").prop("disabled", false);
+                                $('#code').prop('readonly', false);
+                                $('#code').val('');
+                            });
+                    } else {
+                        $('.error-message-cc').addClass('text-center errors note form-message form-error form-message--error');
+                        if(eoShShopDomain == "buymevip.myshopify.com"){
+                        
+                         $('.error-message-cc').html('<p style="color:black;"> ' + eoshMessages.code_error_text + ' </p>').show();
+                        }else{
+                            $('.error-message-cc').html('<p style="color:red;"> ' + eoshMessages.code_error_text + ' </p>').show();
+                        }
+                        setTimeout(function () {
+                            $('.error-message-cc').hide();
+                            $('.error-message-cc').removeClass('text-center errors note form-message form-error form-message--error');
+                        }, 3000);
+                        $("#confirm-code").prop("disabled", false);
+                        if (eoShShopDomain == "fabbricaocchiali.myshopify.com") {
+                            $('#code').val('');
+                        }
+                    }
+            }
+        }
+        function createCustomer(token) {
+            const rDC = {
+                domain: eoShShopDomain,
+                phoneNumber: eoShPhoneNumber,
+                token: token,
+                fname: eoShFname,
+                lname: eoShLname,
+                email: eoShEmail,
+                eoshNewCustomer: eoshNewCustomer,
+            };
+            const eDC = base64Encode(rDC);
+            $.ajax({
+                url: eoShBaseUrl + 'api/customer/create',
+                type: 'POST',
+                dataType: 'json',
+                crossDomain: true,
+                data: {
+                    'dt': eDC
+                },
+                // data: { 'domain': eoShShopDomain, 'phoneNumber': eoShPhoneNumber, 'token': token, 'fname': eoShFname, 'lname': eoShLname, 'email': eoShEmail ,'eoshNewCustomer':eoshNewCustomer},
+                success: function (response) {
+                    if (!(response['msg'])) {
+                        let pageURL = $(location).attr("href");
+                        let email = response['email'];
+                        let token = null;
+                        let prevEmailAttr;
+                        let prevPassAttr;
+                        $(".error-message-pn").hide();
+                        if ($('input[name="customer[email]"]') && $('input[name="customer[password]"]')) {
+                            prevEmailAttr = $('input[name="customer[email]"]');
+                            prevPassAttr = $('input[name="customer[password]"]');
+                        }
+                        if (pageURL.includes("/account/login")) {
+                            if ($("form[action='/account/login']").length == 0) {
+                                if (pageURL.includes('checkout_url') && eoShShopDomain != "clinikally.myshopify.com") {
+                                    $(".error-message-pn").html('<form accept-charset="UTF-8" action="/account/login" method="post"> <input name="form_type" type="hidden" value="customer_login"> <input name="utf8" type="hidden" value="✓"> <div class="ct-login"> <div class="form-group"> <label for="customer_email"> <span> Email Address </span> <em>*</em> </label> <input class="form-control" type="email" id="emailLoginMob" value="" name="customer[email]" placeholder="Email Address"> </div><div class="form-group"> <label for="customer_password"> <span> Password </span> <em>*</em> </label> <input class="form-control" id="passLoginMob" type="password" value="" placeholder="Password" name="customer[password]"> </div><div class="action-btn"> <input type="submit" class="btn btn-login" value="Login"><input type="hidden" name="checkout_url" value="' + window.location.href + '"> </div></div></form>').hide();
+                                } 
+                                if (pageURL.includes('/associate-account')) {
+
+                                   $(".error-message-pn").html('<form accept-charset="UTF-8" action="/account/login" method="post"> <input name="form_type" type="hidden" value="customer_login"> <input name="utf8" type="hidden" value="✓"> <div class="ct-login"> <div class="form-group"> <label for="customer_email"> <span> Email Address </span> <em>*</em> </label> <input class="form-control" type="email" id="emailLoginMob" value="" name="customer[email]" placeholder="Email Address"> </div><div class="form-group"> <label for="customer_password"> <span> Password </span> <em>*</em> </label> <input class="form-control" id="passLoginMob" type="password" value="" placeholder="Password" name="customer[password]"> </div><div class="action-btn"> <input type="submit" class="btn btn-login" value="Login"><input type="hidden" name="checkout_url" value="'+eoShShopDomain+'/account"> </div></div></form>').hide();
+                                } 
+                                else {
+                                    $(".error-message-pn").html('<form accept-charset="UTF-8" action="/account/login" method="post"> <input name="form_type" type="hidden" value="customer_login"> <input name="utf8" type="hidden" value="✓"> <div class="ct-login"> <div class="form-group"> <label for="customer_email"> <span> Email Address </span> <em>*</em> </label> <input class="form-control" type="email" id="emailLoginMob" value="" name="customer[email]" placeholder="Email Address"> </div><div class="form-group"> <label for="customer_password"> <span> Password </span> <em>*</em> </label> <input class="form-control" id="passLoginMob" type="password" value="" placeholder="Password" name="customer[password]"> </div><div class="action-btn"> <input type="submit" class="btn btn-login" value="Login"> </div></div></form>').hide();
+                                }
+                            } else {
+                                $('<input>').attr({
+                                    type: 'hidden',
+                                    id: 'emailLoginMob',
+                                    name: 'customer[email]',
+                                }).insertBefore($('input[name="customer[email]"]'));
+                                $('<input>').attr({
+                                    type: 'hidden',
+                                    id: 'passLoginMob',
+                                    name: 'customer[password]',
+                                }).insertBefore($('input[name="customer[password]"]'));
+                                if (prevEmailAttr && prevPassAttr) {
+                                    $(prevEmailAttr).attr('name', 'abc');
+                                    $(prevPassAttr).attr('name', 'def');
+                                }
+                                if (eoShShopDomain == "mnkhoney.myshopify.com" || eoShShopDomain == "fabbricaocchiali.myshopify.com") {
+                                    $('#CustomerEmail').attr('id', 'ghi');
+                                    $('#CustomerPassword').attr('id', 'jkl');
+                                } else if (eoShShopDomain == "shoe-tree-india.myshopify.com" || eoShShopDomain == "indiahemporganics.myshopify.com") {
+                                    $('#customer_email').attr('id', 'ghi');
+                                    $('#customer_password').attr('id', 'jkl');
+                                }else if(eoShShopDomain == "aadarayurveda.myshopify.com"){
+                                       $('input[name="abc"]').remove();
+                                       $('input[name="def"]').remove();
+                                }
+
+                            }
+                            token = atob(response['token']);
+                            if (pageURL.includes('/associate-account')){
+                                $('#emailLoginMob').attr('value',email);
+                                $('#passLoginMob').attr('value',token); 
+                            }
+                            else{
+                                 $('#emailLoginMob').val(email);
+                                 $('#passLoginMob').val(token);
+                            }
+                        } else if (eoShShopDomain == "mnkhoney.myshopify.com") {
+                            if (pageURL.includes("/products/")) {
+                                $(".error-message-pn").html('<form accept-charset="UTF-8" action="/account/login" method="post"> <input name="form_type" type="hidden" value="customer_login"> <input name="utf8" type="hidden" value="✓"> <div class="ct-login"> <div class="form-group"> <label for="customer_email"> <span> Email Address </span> <em>*</em> </label> <input class="form-control" type="email" value="" name="customer[email]" placeholder="Email Address"> </div><div class="form-group"> <label for="customer_password"> <span> Password </span> <em>*</em> </label> <input class="form-control" type="password" value="" placeholder="Password" name="customer[password]"> </div><div class="action-btn"> <input type="submit" class="btn btn-login" value="Login"> <input type="hidden" name="checkout_url" value="' + window.location.href + '"> </div></div></form>');
+                            } else if (pageURL.includes("/pages/logintoreviews")) {
+                                $(".error-message-pn").html('<form accept-charset="UTF-8" action="/account/login" method="post"> <input name="form_type" type="hidden" value="customer_login"> <input name="utf8" type="hidden" value="✓"> <div class="ct-login"> <div class="form-group"> <label for="customer_email"> <span> Email Address </span> <em>*</em> </label> <input class="form-control" type="email" value="" name="customer[email]" placeholder="Email Address"> </div><div class="form-group"> <label for="customer_password"> <span> Password </span> <em>*</em> </label> <input class="form-control" type="password" value="" placeholder="Password" name="customer[password]"> </div><div class="action-btn"> <input type="submit" class="btn btn-login" value="Login"> <input type="hidden" name="checkout_url" value="https://manukakuwait.com/pages/Reviews"> </div></div></form>');
+                            } else {
+                                $(".error-message-pn").html('<form accept-charset="UTF-8" action="/account/login" method="post"> <input name="form_type" type="hidden" value="customer_login"> <input name="utf8" type="hidden" value="✓"> <div class="ct-login"> <div class="form-group"> <label for="customer_email"> <span> Email Address </span> <em>*</em> </label> <input class="form-control" type="email" value="" name="customer[email]" placeholder="Email Address"> </div><div class="form-group"> <label for="customer_password"> <span> Password </span> <em>*</em> </label> <input class="form-control" type="password" value="" placeholder="Password" name="customer[password]"> </div><div class="action-btn"> <input type="submit" class="btn btn-login" value="Login"> </div></div></form>');
+                            }
+                            if (prevEmailAttr && prevPassAttr) {
+                                $(prevEmailAttr).attr('name', 'abc');
+                                $(prevPassAttr).attr('name', 'def');
+                            }
+                            token = atob(response['token']);
+                            $('input[name="customer[email]"]').val(email);
+                            $('input[name="customer[password]"]').val(token);
+                        } else if(eoShShopDomain == "aadarayurveda.myshopify.com"){
+                                $(".error-message-pn").append('<form accept-charset="UTF-8" action="/account/login" method="post"> <input name="form_type" type="hidden" value="customer_login"> <input name="utf8" type="hidden" value="✓"> <div class="ct-login"> <div class="form-group"> <label for="customer_email"> <span> Email Address </span> <em>*</em> </label> <input class="form-control" type="email" value="" name="customer[email]" placeholder="Email Address"> </div><div class="form-group"> <label for="customer_password"> <span> Password </span> <em>*</em> </label> <input class="form-control" type="password" value="" placeholder="Password" name="customer[password]"> </div><div class="action-btn"> <input type="submit" class="btn btn-login" value="Login"> </div></div></form>');
+                                token = atob(response['token']);
+                                $('input[name="customer[email]"]').val(email);
+                                $('input[name="customer[password]"]').val(token);
+                        }else {
+
+                            if (pageURL.includes('/associate-account')) {
+
+                                $(".eosh-error-pass-div").html('<form accept-charset="UTF-8" action="/account/login" method="post"> <input name="form_type" type="hidden" value="customer_login"> <input name="utf8" type="hidden" value="✓"> <div class="ct-login"> <div class="form-group"> <label for="customer_email"> <span> Email Address </span> <em>*</em> </label> <input class="form-control" type="email" id="emailLoginMob" value="" name="customer[email]" placeholder="Email Address"> </div><div class="form-group"> <label for="customer_password"> <span> Password </span> <em>*</em> </label> <input class="form-control" id="passLoginMob" type="password" value="" placeholder="Password" name="customer[password]"> </div><div class="action-btn"> <input type="submit" class="btn btn-login" value="Login"><input type="hidden" name="checkout_url" value="'+eoShShopDomain+'/account"> </div></div></form>').hide();
+                            } 
+                            $(".error-message-pn").html('<form accept-charset="UTF-8" action="/account/login" method="post"> <input name="form_type" type="hidden" value="customer_login"> <input name="utf8" type="hidden" value="✓"> <div class="ct-login"> <div class="form-group"> <label for="customer_email"> <span> Email Address </span> <em>*</em> </label> <input class="form-control" type="email" value="" name="customer[email]" placeholder="Email Address"> </div><div class="form-group"> <label for="customer_password"> <span> Password </span> <em>*</em> </label> <input class="form-control" type="password" value="" placeholder="Password" name="customer[password]"> </div><div class="action-btn"> <input type="submit" class="btn btn-login" value="Login"> </div></div></form>');
+                            if (prevEmailAttr && prevPassAttr) {
+                                $(prevEmailAttr).attr('name', 'abc');
+                                $(prevPassAttr).attr('name', 'def');
+                            }
+
+                            token = atob(response['token']);
+                            if(eoShShopDomain == "starly-clothes.myshopify.com" && pageURL.includes("/account/register")){
+                                 $('input[name="customer[email]"]').attr('value',email);
+                                 $('input[name="customer[password]"]').attr('value',token);
+                            }
+                            else{
+                                $('input[name="customer[email]"]').val(email);
+                                $('input[name="customer[password]"]').val(token);
+                            }
+                        }
+                        let form;
+                        if (eoShShopDomain == "dandyroad.myshopify.com") {
+                            form = $("form[action='/account/login']")[1];
+                        } else if (eoShShopDomain == "mnkhoney.myshopify.com" || eoShShopDomain == "fabbricaocchiali.myshopify.com" || eoShShopDomain == "kisanshopvns.myshopify.com" || eoShShopDomain == "peyango.myshopify.com" || eoShShopDomain == "fashionstockstore1.myshopify.com" || eoShShopDomain == "niconii.myshopify.com") {
+                            form = $("form[action='/account/login']")[0];
+                        } else if (eoShShopDomain == "shoe-tree-india.myshopify.com" && (pageURL.includes("/account/login") || pageURL.includes("/account/register"))) {
+                            form = $("form[action='/account/login']")[0];
+                        } else if (eoShShopDomain == "thebtclub.myshopify.com" && pageURL.includes("/account/login")) {
+                            form = $("form[action='/account/login']")[2];
+                        } else if ((eoShShopDomain == "ornatejewel.myshopify.com" || eoShShopDomain == "clinikally.myshopify.com" || eoShShopDomain == "machilibazaar.myshopify.com" || eoShShopDomain == "jubleelens-eyeglass.myshopify.com" || eoShShopDomain == "daily-needs-gurugram.myshopify.com") && pageURL.includes("/account/login")) {
+                            form = $("form[action='/account/login']")[0];
+                        } else if (eoShShopDomain == "sooqaman.myshopify.com" && eoShopLocale != "ar") {
+                            form = $("form[action='/" + eoShopLocale + "/account/login']");
+                        } else if (eoShShopDomain == "origincostomes.myshopify.com") {
+                            form = $("form[action='/account/login']")[2];
+                        } else if (eoShShopDomain == "sea-lion-e-market.myshopify.com" || eoShShopDomain == "tcwpl.myshopify.com" || eoShShopDomain == "cliqzee.myshopify.com" || eoShShopDomain == "silkzon-in.myshopify.com") {
+                            if (!pageURL.includes("/account/register") && !pageURL.includes("/account/login")) {
+                                form = $("form[action='/account/login']")[1];
+                            } else if (!pageURL.includes("/account/register")) {
+                                form = $("form[action='/account/login']")[0];
+                            }
+                        } else if (eoShShopDomain == "raisinglobal.myshopify.com") {
+                            if (!pageURL.includes("/account/register") && !pageURL.includes("/account/login")) {
+                                form = $("form[action='/account/login']")[1];
+                            } else {
+                                form = $("form[action='/account/login']")[0];
+                            }
+                        }else if(eoShShopDomain =="studio-iris-india.myshopify.com"  && (window.location.href.includes("/account/login") || window.location.href.includes("/account/register"))){
+                            form = $("form[action='/account/login']")[0];
+                        }else if(eoShShopDomain == "glutone.myshopify.com" && (window.location.href.includes("/account/login") || window.location.href.includes("/account/register"))){
+                            form = $("form[action='/account/login']")[0];
+                        }else if(eoShShopDomain == "aadarayurveda.myshopify.com"){
+                            if (pageURL.includes('checkout_url')) {
+                                form = $("form[action='/account/login']")[0];
+                            }
+                            else{
+                                form = $("form[action='/account/login']");
+                            }
+                        }
+                        else if(eoShShopDomain == "starly-clothes.myshopify.com"){
+                                form = $("form[action='/account/login']")[0];     
+                        }
+                        else {
+                            form = $("form[action='/account/login']");
+                        }
+
+                        if(eoShShopDomain == "lipka-home.myshopify.com") {
+                            $(".action-btn input[type='submit']").click();
+                        } else{
+                            form.submit();
+                        }
+                    } else {
+                        try {
+                            if (response['msg']) {
+                                $(".success-message-cc").hide();
+                                $('.error-message-cc').addClass('text-center errors note form-message form-error form-message--error');
+                                if(eoShShopDomain == "buymevip.myshopify.com"){
+                        
+                                  $('.error-message-cc').html('<p style="color:black;">' + response['error'] + '</p>').show();
+                                }else{
+                                   $('.error-message-cc').html('<p>' + response['error'] + '</p>').show();
+                                }
+                                if (response.error_no == 1) {
+                                    if (eoShShopDomain == "manucart29.myshopify.com") {
+                                        window.location.href = response['url'];
+                                    }
+                                } else if (response.error_no == 2) {
+                                    $("#pass-div").show();
+                                }
+                                $("#code-div").hide();
+                            }
+                        } catch (response) {
+                            console.log(response);
+                        }
+                    }
+                },
+                error: function (reject) {
+                    console.log(reject);
+                }
+            });
+        }
+        function getCustomerDetails() {
+            let id = __st.cid;
+            $.ajax({
+                url: eoShBaseUrl + 'api/customer',
+                type: 'GET',
+                dataType: 'json',
+                crossDomain: true,
+                data: { 'id': id, 'domain': eoShShopDomain },
+                success: function (response) {
+                    $("#gscollectionbottom").hide();
+                    if (eoShShopDomain == "rastogisale.myshopify.com") {
+                        if (response['email'].search("@mensclues.com") == -1) {
+                            $("#customer-email").val(response['email']);
+                        }
+                    } else if (response['email'].search("@" + eoShShopDomain) == -1) {
+                        $("#customer-email").val(response['email']);
+                    } 
+                    
+                    if(eoShShopDomain == 'qwertd.myshopify.com' || $.inArray(eoShShopDomain, eoShCustomerFeildStore) !=-1){
+                        $('<input type="hidden" id="eo-sh-customer-email" value='+response["email"]+' />').insertAfter( "#customer-email" );
+                    }
+                    $("#first-name").val(response['first_name']);
+                    $("#last-name").val(response['last_name']);
+                    $("#customer-phone").val(response['phone']);
+                    if($('#customer-phone').val() == ""){
+                          $('#customer-phone').removeAttr('disabled');
+                    }else{
+                          $('#customer-phone').attr('disabled','disabled');
+                        }
+                },
+                error: function (reject) {
+                    console.log(reject);
+                }
+            });
+        }
+        function updateCustomer(email) {
+            let firstName = $("#first-name").val();
+            let lastName = $("#last-name").val();
+            let customerPhone = $("#customer-phone").val();
+            email = email;
+            let id = __st.cid;
+            var messageColor="black";
+            if(eoShShopDomain == "qwertd.myshopify.com" || eoShShopDomain == "buymevip.myshopify.com"){
+                var messageColor="white";
+            }
+
+            $.ajax({
+                url: eoShBaseUrl + 'api/customer/update',
+                type: 'POST',
+                dataType: 'json',
+                crossDomain: true,
+                data: {
+                    'id': id, 'first_name': firstName, 'last_name': lastName,
+                    'email': email, 'phone': customerPhone, 'domain': eoShShopDomain
+                },
+                success: function (response) {
+                    if (!(response['msg'])) {
+                        $(".error-message-ue").fadeOut();
+                        $('.success-message-ue').html(`<div  class="text-center"><h4 style="color:${messageColor}">Your Information has been Updated</h4></div>`).show();
+                        setTimeout(function () {
+                            $('.success-message-ue').fadeOut("slow");
+                        }, 3000);
+                        $("#NewsletterEmail").val(email);
+                    } else {
+                        $(".error-message-ue").fadeOut();
+                        $('.success-message-ue').addClass('text-center errors note form-message form-error form-message--error');
+                        if (response['body'].hasOwnProperty(['email'])) {
+                            $('.success-message-ue').html('<div class="text-center"><h4 style="color:red;">Email ' + response['body']['email'][0] + '</h4></div>').show();
+                        } else if (response['body'].hasOwnProperty(['phone'])) {
+                            $('.success-message-ue').html('<div class="text-center"><h4 style="color:red;">Phone ' + response['body']['phone'][0] + '</h4></div>').show();
+                        }
+                        setTimeout(function () {
+                            $('.success-message-ue').fadeOut("slow");
+                            $('.success-message-ue').removeClass('text-center errors note form-message form-error form-message--error');
+                        }, 3000);
+                    }
+                },
+                error: function (reject) {
+                    console.log(reject);
+                }
+            });
+        }
+        function showLoader() {
+            $("#NewsletterEmail").val("");
+            let loader = '<div class="m-top-mob" style="width: 100%; float: none;" id="gscollectionbottom"><center><img style="margin-top: 10px;" src="https://gravity-apps.com/shopify/media/loader.gif"></center></div>';
+            $("main[role='main']").append(loader).show();
+            if (eoShShopDomain == "shurfa-restaurant.myshopify.com") {
+                $("<style type='text/css'> .m-top-mob{margin-top:-8%!important} </style>").appendTo("head");
+            } else if (eoShShopDomain == "alstyle-india.myshopify.com") {
+                $(".table-responsive").append(loader).show();
+            } else if (eoShShopDomain == "sooqaman.myshopify.com") {
+                $('a[data-href="#flits-page-profile"]').hide();
+            } else if (eoShShopDomain == "gritzo-com.myshopify.com") {
+                $(".grid-item").append(loader).show();
+            } else if (eoShShopDomain == "origincostomes.myshopify.com" || eoShShopDomain == "machilibazaar.myshopify.com") {
+                $(".maxus-myaccount__content").append(loader).show();
+            } else if (eoShShopDomain == "hk-basic.myshopify.com") {
+                $('#gscollectionbottom').remove();
+                $(loader).insertBefore("#otp_profile_update");
+            } else if (eoShShopDomain == "sea-lion-e-market.myshopify.com") {
+                $('#gscollectionbottom').remove();
+                position = $('.card__section')[2];
+                $(loader).insertAfter(position);
+            } else if (eoShShopDomain == "raisinglobal.myshopify.com") {
+                $(".sp-table-responsive").append(loader).show();
+                $(".sp-table-shop-02").hide();
+            } else if (eoShShopDomain == "acartpk.myshopify.com") {
+                position = $('.tab-content')[1];
+                $(loader).insertAfter(position);
+            } else if (eoShShopDomain == "ausganica-limited.myshopify.com") {
+                $(".three-fourths").append(loader).show();
+            } else if (eoShShopDomain == "trizen-nutraceuticals.myshopify.com") {
+                position = $(".PageLayout__Section")[0];
+                $(loader).insertAfter(position);
+            } else if (eoShShopDomain == "dkthealth.myshopify.com") {
+                $($(".grid__item")[0]).append(loader);
+            } else if (eoShShopDomain == "debs-mania.myshopify.com") {
+                $(".wk_amount_detail").append(loader).show();
+            } else if (eoShShopDomain == "ayurmeans.myshopify.com") {
+                $("#flits-page-profile").parent().append(loader);
+            } else if (eoShShopDomain == "wildermart1.myshopify.com") {
+                $("#customer_orders").append(loader);
+            } else if (eoShShopDomain == "jkpliterature.myshopify.com") {
+                $(".two-thirds").append(loader);
+            } else if (eoShShopDomain == "daily-needs-gurugram.myshopify.com") {
+                $("main").append(loader);
+            }
+        }
+        function getCusomerAccountDetails() {
+            $.ajax({
+                url: eoShBaseUrl + 'api/settings',
+                type: 'GET',
+                dataType: 'json',
+                crossDomain: true,
+                data: { 'domain': eoShShopDomain },
+                success: function (response) {
+                    if (response['msg']) {
+                        eoshMessages = response['appSetting'];
+                        appSettings = response['appSetting'];
+                        if (appSettings['enable_app'] == "1") {
+                            showCustomerAccountForm();
+                            getCustomerDetails();
+                        } else {
+                            $("#gscollectionbottom").hide();
+                        }
+                    }
+                },
+                error: function (reject) {
+                    console.log(reject);
+                }
+            });
+        }
+        function showCustomerAccountForm() {
+            let defaultForm = '<div class="page-width m-top-mob"><div class="section-header section-header--small">' +
+                '<h2 class="text-center">' + eoshMessages.account_main_heading_text + '</h2>' +
+                '</div>' +
+                '<div>' +
+                '<div class="text-center"><input type="text" id="first-name" placeholder="' + eoshMessages.first_name_field_text + '" class="input-full form__input"></div><br>' +
+                '<div class="text-center"><input type="text" id="last-name" placeholder="' + eoshMessages.last_name_field_text + '" class="input-full form__input"></div><br>' +
+                '<div class="text-center"><input type="email" id="customer-email" placeholder="' + eoshMessages.email_field_text + '" class="input-full form__input"></div><br>' +
+                '<div class="text-center"><input type="text" id="customer-phone" disabled placeholder="' + phoneFieldText + '" class="input-full form__input"></div><br>' +
+                '<div class="error-message-ue"></div>' +
+                '<div class="success-message-ue"></div>' +
+                '<div class="text-center"><input type="button" class="btn customer__button text-center" value="' + eoshMessages.update_email_button_text + '" id="update-info" style="background-color:' + appSettings.buttons_bg_color + '; color:' + appSettings.buttons_text_color + '; border: 2px solid ' + appSettings.buttons_bg_color + '"></div><br>' +
+                '</div></div>';
+            if (eoShShopDomain == "alstyle-india.myshopify.com") {
+                $(".table-responsive").append(defaultForm);
+            } 
+            else if(eoShShopDomain == "inaminute-shop.myshopify.com"){
+                if($('#customer-phone').val() == ""){
+                    
+                    $('#customer-phone').prop('disabled', false);
+                }
+            }else if (eoShShopDomain == "ridershopth.myshopify.com") {
+                $(".account-page-content").append(defaultForm);
+            }else if (eoShShopDomain == "indiahemporganics.myshopify.com") {
+                $("#customer_orders").append(defaultForm);
+                $(":button").addClass("button button--primary hs-s");
+                $("input").addClass('input');
+            }else if (eoShShopTheme == "Live-5-Wokiee-Version-2-0-4") {
+                $(".container-indent:first-child").append(defaultForm);
+                $(".m-top-mob").css({
+                    "max-width": "520px",
+                    "margin": "60px auto",
+                    "text-align": "center",
+                });
+                $(".m-top-mob h2").addClass('tt-title notranslate');
+                $(".m-top-mob input").addClass('form-control');
+                $(".m-top-mob input[type='button']").addClass('btn btn-border');
+                $(".m-top-mob input[type='button']").removeAttr("style");
+            } else if (eoShShopDomain == "ornatejewel.myshopify.com") {
+                $(defaultForm).insertAfter(".tabs__body");
+            } else if (eoShShopDomain == "supertail.myshopify.com") {
+                $(".main-content").append(defaultForm);
+            } else if (eoShShopDomain == "sooqaman.myshopify.com") {
+                $("input[type='email']")[1].removeAttribute('readonly');
+                $(".flits-page").append(defaultForm);
+            } else if (eoShShopDomain == "shibelclothing.myshopify.com") {
+                $(".grid").append(defaultForm);
+            } else if (eoShShopDomain == "aegtes.myshopify.com") {
+                $(".customer--root").append(defaultForm);
+            } else if (eoShShopDomain == "winautoparts-com.myshopify.com") {
+                $(defaultForm).insertAfter(".box-order-history");
+                $(".m-top-mob").addClass('sfbox');
+            } else if (eoShShopDomain == "gritzo-com.myshopify.com") {
+                $(defaultForm).insertAfter(".return-button");
+                $(".m-top-mob input").addClass('form-control mb-2');
+                $(".m-top-mob").css({
+                    "max-width": "360px",
+                    "margin": "3% auto",
+                    "text-align": "center",
+                });
+                $("<br>").insertAfter(".m-top-mob h2");
+                $(".m-top-mob input[type='button']").removeClass('form-control mb-2');
+            } else if (eoShShopDomain == "hk-basic.myshopify.com") {
+                defaultForm = '<div class="page-width m-top-mob"><div class="section-header section-header--small">' +
+                    '<h2 class="text-center">' + eoshMessages.account_main_heading_text + '</h2>' +
+                    '</div>' +
+                    '<div class="account">' +
+                    '<div><p class="label">First Name</p><input type="text" id="first-name" placeholder="' + eoshMessages.first_name_field_text + '" class="input-full form__input"></div><br>' +
+                    '<div><p class="label">Last Name</p><input type="text" id="last-name" placeholder="' + eoshMessages.last_name_field_text + '" class="input-full form__input"></div><br>' +
+                    '<div><p class="label">Email</p><input type="email" id="customer-email" placeholder="' + eoshMessages.email_field_text + '" class="input-full form__input"></div><br>' +
+                    '<div><p class="label">Mobile</p><input type="text" id="customer-phone" placeholder="' + phoneFieldText + '" class="input-full form__input"></div><br>' +
+                    '<div class="error-message-ue"></div>' +
+                    '<div class="success-message-ue"></div>' +
+                    '<div class="text-center"><input type="button" class="btn customer__button text-center" value="' + eoshMessages.update_email_button_text + '" id="update-info" style="background-color:' + eoshMessages.buttons_bg_color + '; color:' + eoshMessages.buttons_text_color + '; border: 2px solid ' + eoshMessages.buttons_bg_color + '"></div><br>' +
+                    '</div></div><br>';
+                $(defaultForm).insertAfter("#otp_profile_update");
+                $(".m-top-mob input").attr("autocomplete", "off");
+            } else if (eoShShopDomain == "sea-lion-e-market.myshopify.com") {
+                position = $('.card__section')[2];
+                $(defaultForm).insertAfter(position);
+                $(".m-top-mob h2").addClass('heading h3');
+                $(".m-top-mob input").addClass('form__field form__field--text');
+                $("<br/>").insertAfter(".m-top-mob h2");
+                $(".m-top-mob input[type='button']").removeClass('form__field form__field--text');
+                $(".m-top-mob input[type='button']").addClass('empty-state__button button');
+            } else if (eoShShopDomain == "raisinglobal.myshopify.com") {
+                $(".sp-table-responsive").append(defaultForm);
+                $(".m-top-mob input").addClass('form-control');
+                $(".m-top-mob input[type='button']").removeClass('form-control');
+                $(".m-top-mob h2").addClass('sp-title');
+            } else if (eoShShopDomain == "rajmandir-provision.myshopify.com") {
+                $(defaultForm).insertAfter(".account-info");
+                $(".m-top-mob input").addClass('form-field-input form-field-text');
+                $(".m-top-mob h2").addClass('account-page-title');
+                $(".section-header--small").addClass('account-page-masthead');
+                $(".m-top-mob input[type='button']").removeClass('form-field-input form-field-text');
+                $(".m-top-mob input[type='button']").addClass('button-primary');
+                $(".m-top-mob input").css({
+                    "padding": "1rem"
+                });
+            } else if (eoShShopDomain == "acartpk.myshopify.com") {
+                position = $('.tab-content')[1];
+                $(defaultForm).insertAfter(position);
+                $(".m-top-mob input").addClass('form-control');
+                $(".m-top-mob input[type='button']").removeClass('form-control');
+            } else if (eoShShopDomain == "ausganica-limited.myshopify.com") {
+                $(".three-fourths").append(defaultForm);
+            } else if (eoShShopDomain == "koshali-art-crafts-enterprise.myshopify.com") {
+                $("main[role='main']").append(defaultForm);
+                $(".m-top-mob h2").addClass('SectionHeader__Heading Heading u-h1');
+                $(".m-top-mob input").addClass('Form__Input');
+            } else if (eoShShopDomain == "trizen-nutraceuticals.myshopify.com") {
+                position = $(".PageLayout__Section")[0];
+                $(defaultForm).insertAfter(position);
+                $(".m-top-mob").css({
+                    "max-width": "520px",
+                    "margin": "60px auto",
+                });
+                $(".m-top-mob input").addClass('Form__Input');
+                $("<br/>").insertAfter(".m-top-mob h2");
+                $("<br/>").insertBefore(".m-top-mob h2");
+                $(".m-top-mob input[type='button']").css({
+                    'width': '50',
+                });
+            } else if (eoShShopDomain == "machilibazaar.myshopify.com") {
+                $(".maxus-myaccount__content").append(defaultForm);
+                $(".m-top-mob h2").css({
+                    "font-size": "1.3rem",
+                    "color": "black",
+                });
+            } else if (eoShShopDomain == "peyango.myshopify.com") {
+                defaultForm = '<div class="page-width m-top-mob" style="margin:3rem auto;">' +
+                    '<h4 class="h4-second section__subtitle">' + eoshMessages.account_main_heading_text + '</h4>' +
+                    '<div><p class="form__label">First Name</p><input type="text" id="first-name" placeholder="' + eoshMessages.first_name_field_text + '" class="field"></div><br>' +
+                    '<div><p class="form__label">Last Name</p><input type="text" id="last-name" placeholder="' + eoshMessages.last_name_field_text + '" class="field"></div><br>' +
+                    '<div><p class="form__label">Email</p><input type="email" id="customer-email" placeholder="' + eoshMessages.email_field_text + '" class="field"></div><br>' +
+                    '<div><p class="form__label">Mobile</p><input type="text"  id="customer-phone" placeholder="' + phoneFieldText + '" class="field"></div><br>' +
+                    '<div class="error-message-ue"></div>' +
+                    '<div class="success-message-ue"></div>' +
+                    '<div class="text-center"><input type="button" class="btn customer__button text-center" value="' + eoshMessages.update_email_button_text + '" id="update-info" style="background-color:' + eoshMessages.buttons_bg_color + '; color:' + eoshMessages.buttons_text_color + '; border: 2px solid ' + eoshMessages.buttons_bg_color + '"></div><br>' +
+                    '</div></div><br>';
+                $(".section__content").append(defaultForm);
+            } else if (eoShShopDomain == "tcwpl.myshopify.com" || eoShShopDomain == "cliqzee.myshopify.com" || eoShShopDomain == "silkzon-in.myshopify.com") {
+                $("main[role='main']").append(defaultForm);
+                $(".m-top-mob h2").addClass('heading h3');
+                $(".m-top-mob input").addClass('form__field form__field--text');
+                $("<br/>").insertAfter(".m-top-mob h2");
+                $(".m-top-mob input[type='button']").removeClass('form__field form__field--text');
+                $(".m-top-mob input[type='button']").addClass('empty-state__button button');
+            } else if (eoShShopDomain == "dkthealth.myshopify.com") {
+                $($(".grid__item")[0]).append(defaultForm);
+            } else if (eoShShopDomain == "debs-mania.myshopify.com") {
+                $(".wk_amount_detail").append(defaultForm);
+            } else if (eoShShopDomain == "ayurmeans.myshopify.com") {
+                $("#flits-page-profile").parent().append(defaultForm);
+            } else if (eoShShopDomain == "wildermart1.myshopify.com") {
+                $("#customer_orders").append(defaultForm);
+            } else if (eoShShopDomain == "jkpliterature.myshopify.com") {
+                $(".two-thirds").append(defaultForm);
+            } else if (eoShShopDomain == "daily-needs-gurugram.myshopify.com") {
+                $("main").append(defaultForm);
+            } else if (eoShShopDomain == "winstor-pk.myshopify.com") {
+                $("#col-main").append(defaultForm);
+            } else if (eoShShopDomain == "studio-iris-india.myshopify.com") {
+                $(".woocommerce > div.container").append(defaultForm);
+            } else if(eoShShopDomain == "aadarayurveda.myshopify.com"){
+                $('a[href*="/account/addresses"]').after(defaultForm);
+            }
+            else if(eoShShopDomain == "nutrisoul-store.myshopify.com"){
+                    $(defaultForm).insertAfter(".address-col > p");
+                    $(".m-top-mob").css({
+                        "max-width": "520px",
+                        "margin": "60px auto",
+                        "text-align": "center",
+                        "background-color": "#f7f7f7",
+                        "padding": "30px",
+                    });
+                    $('#update-info').css({
+                                       'background-color' : '#348741',
+                                       'font-size' : 'inherit',
+                                       'font-style' : 'normal',
+                                       'font-weight':  'normal',
+                                       'font-family':  'Roboto, sans-serif',
+                                       'border'     : '0px solid',
+                    });
+                    $("#update-info").hover(function(){
+                            $(this).css("background-color", "#4F8A10");
+                            }, function(){
+                            $(this).css("background-color", "#348741");
+                    });
+            }
+            else if(eoShShopDomain == "www-sstmart-com.myshopify.com"){
+                               
+                $("main[role='main']").append(defaultForm);
+                $(".m-top-mob").css({
+                    "max-width": "520px",
+                    "margin": "60px auto",
+                    "text-align": "center",
+                });
+                $('h2.text-center').css('padding','30px');
+            }
+            else if(eoShShopDomain == "nature-and-thought.myshopify.com"){
+                 $(".two-thirds").append(defaultForm);
+            }
+            else if(eoShShopDomain == 'growitfarmer2.myshopify.com'){
+                $("div.account_details").append(defaultForm);
+            }
+            else {
+                $("main[role='main']").append(defaultForm);
+            }
+
+            if (appSettings.hide_update_info_button) {
+                $("#update-info").hide();
+            }
+
+            if (eoShShopTheme == "EcomSolid") {
+                $(".m-top-mob").css({ "width": "50%", "text-align": "center", "margin": "100px auto" });
+            } else if (eoShShopTheme == "Shopify-ella-theme-3.0.0" || eoShShopTheme == "Ella-3.0.0-sections-ready") {
+                $(".m-top-mob input").css({ "margin-left": "450px" });
+                $("#update-info").parent().removeClass("text-center");
+            } else if (eoShShopDomain == "dandyroad.myshopify.com") {
+                $(".m-top-mob").css({ "text-align": "center", "margin": "4% 20%" });
+            } else if (eoShShopDomain == "ardmore-adventist-academy-farm-stand.myshopify.com") {
+                $(".mtop-mob").css({ "margin-top": "4%" });
+            } else if (eoShShopDomain == "shoe-tree-india.myshopify.com") {
+                $(".m-top-mob").css({ "margin": "4% 36%" });
+            } else if (eoShShopDomain == "sooqaman.myshopify.com" || eoShShopDomain == "shibelclothing.myshopify.com") {
+                $(".m-top-mob").css({ "margin": "0% 30%" });
+            } else if (eoShShopDomain == "aegtes.myshopify.com") {
+                $(".m-top-mob button").css({ "width": "auto", "height": "auto" });
+                $(".m-top-mob").css({ "margin-top": "5%" });
+            } else if (eoShShopDomain == "origincostomes.myshopify.com") {
+                $(".maxus-myaccount__content").append(defaultForm);
+                $(".m-top-mob").css({ "margin": "0% 30%" });
+                $(".m-top-mob input").addClass('form-control');
+                $(".m-top-mob h2").css({ "font-size": "20px", "text-transform": "uppercase", "letter-spacing": "2px", "font-weight": "600", "margin-top": "20px", "color": "black" });
+                $(".m-top-mob input[type='button']").removeClass('form-control');
+            } else if (eoShShopDomain == "lala-eshop-ph.myshopify.com" || eoShShopDomain == "acartpk.myshopify.com" || eoShShopDomain == "rajmandir-provision.myshopify.com" || eoShShopDomain == "raisinglobal.myshopify.com" || eoShShopDomain == "ausganica-limited.myshopify.com" || eoShShopDomain == "koshali-art-crafts-enterprise.myshopify.com" || eoShShopDomain == "sea-lion-e-market.myshopify.com" || eoShShopDomain == "machilibazaar.myshopify.com" || eoShShopDomain == "dkthealth.myshopify.com" || eoShShopDomain == "fashionstockstore1.myshopify.com") {
+                $(".m-top-mob").css({
+                    "max-width": "360px",
+                    "margin": "auto",
+                    "text-align": "center",
+                });
+            } else if (eoShShopDomain == "ornatejewel.myshopify.com" || eoShShopDomain == "supertail.myshopify.com" || eoShShopDomain == "kisanshopvns.myshopify.com" || eoShShopDomain == "cleanlogicb2b.myshopify.com" || eoShShopDomain == "debs-mania.myshopify.com" || eoShShopDomain == "ayurmeans.myshopify.com" || eoShShopDomain == "tcwpl.myshopify.com" || eoShShopDomain == "daily-needs-gurugram.myshopify.com" || eoShShopDomain == "cliqzee.myshopify.com" || eoShShopDomain == "silkzon-in.myshopify.com" || eoShShopDomain == "niconii.myshopify.com") {
+                $(".m-top-mob").css({
+                    "max-width": "300px",
+                    "margin": "0px auto",
+                    "text-align": "center",
+                });
+            } else if ($.inArray(eoShShopDomain, eoShCustomerFeildStore) != -1 ){
+                $('<br/><br/><p>By clicking Update Account, you agree to our <a href="'+eoShShopDomain+'"/pages/terms-conditions" target="_blank" style="font-weight:500; color: #1277c6; text-decoration: underline;" rel="null noopener" aria-describedby="a11y-new-window-message"><br>Terms &amp; Conditions</a> on Data Privacy and Sanctions.</p>').insertAfter('#customer-phone');
+            } else if (eoShShopDomain == "farm360.myshopify.com" || eoShShopDomain == "jubleelens-eyeglass.myshopify.com" || eoShShopId == 887 || eoShShopDomain == "silkfabindia.myshopify.com") {
+                $(".m-top-mob").css({
+                    "text-align": "center",
+                    "max-width": "520px",
+                });
+                $(".m-top-mob .form__input").css({
+                    "padding": "1.5rem",
+                    "height": "4.5rem",
+                    "background": "transparent",
+                    "border": "2px solid black",
+                });
+                $(".m-top-mob input[type='button']").addClass('button');
+            }
+        }
+        const getRndInteger = (max, min) => { return Math.floor(Math.random() * (max - min + 1)) + min; }
+        const delay = (n) => new Promise(r => setTimeout(r, n));
+        async function checkExistingCustomer() {
+            await delay(1500);
+            $.ajax({
+                url: eoShBaseUrl + 'api/existing-customer',
+                type: 'GET',
+                dataType: 'json',
+                crossDomain: true,
+                data: { 'domain': eoShShopDomain, 'phoneNumber': eoShPhoneNumber },
+                success: function (response) {
+                    $('.success-message-pn').hide();
+                    if (response['existing']) {
+                        submitPhoneNumberAuth();
+                    } else {
+                        $('#phone-number').prop('disabled', true);
+                        $("#phone-number-country-code").prop('disabled', true);
+                        if (eoShShopDomain == "clinikally.myshopify.com") {
+                            $('<input type="text" style="margin-top:4%" id="fname-eosh" placeholder="' + eoshMessages.first_name_field_text + '" class="input-full form__input"><br/><input type="text" id="lname-eosh" placeholder="' + eoshMessages.last_name_field_text + '" class="input-full form__input"><br/><input type="email" id="email-eosh" placeholder="' + eoshMessages.email_field_text + '" class="input-full form__input"><br/><input type="button" class="btn customer__button" value="Submit" id="submit-eosh" style="background-color:' + eoshMessages.buttons_bg_color + '; color:' + eoshMessages.buttons_text_color + '; border: 2px solid ' + eoshMessages.buttons_bg_color + '">').insertBefore("#sign-in-button");
+                        } else if (eoShShopDomain == "dzatlas.myshopify.com" || eoShShopDomain == "jkpliterature.myshopify.com") {
+                            $('<input type="email" id="email-eosh" placeholder="' + eoshMessages.email_field_text + '" class="input-full form__input form-control"><br/><input type="button" class="btn customer__button" value="Submit" id="submit-eosh" style="background-color:' + eoshMessages.buttons_bg_color + '; color:' + eoshMessages.buttons_text_color + '; border: 2px solid ' + eoshMessages.buttons_bg_color + '">').insertBefore("#sign-in-button");
+                        } else if ( $.inArray(eoShShopDomain, eoShCustomerFeildStore) != -1 ) {
+                            $('<input type="text" style="margin-top:4%" id="fname-eosh" placeholder="' + eoshMessages.first_name_field_text + '" class="input-full form__input"><br/><input type="text" id="lname-eosh" placeholder="' + eoshMessages.last_name_field_text + '" class="input-full form__input"><br/><input type="button" class="btn customer__button" value="Submit" id="submit-eosh" style="background-color:' + eoshMessages.buttons_bg_color + '; color:' + eoshMessages.buttons_text_color + '; border: 2px solid ' + eoshMessages.buttons_bg_color + '">').insertBefore("#sign-in-button");
+                        } else if (eoShShopDomain == "mm-ubeauty.myshopify.com") {
+                            window.location.href = `${window.location.origin}/account/register`;
+                        }
+                        $('#sign-in-button').hide();
+                    }
+                },
+                error: function (reject) {
+                    console.log(reject);
+                }
+            });
+        }
+        function checkEmail(email) {
+            $.ajax({
+                url: eoShBaseUrl + 'api/existing-customer-email',
+                type: 'GET',
+                dataType: 'json',
+                crossDomain: true,
+                data: { 'domain': eoShShopDomain, 'email': email },
+                success: function (response) {
+                    if (response['exist']) {
+                        $('.error-message-pn').addClass('text-center errors note form-message form-error form-message--error');
+                        $('.error-message-pn').html('<p>Email already has been taken</p>').show();
+                        setTimeout(function () {
+                            $('.error-message-pn').hide();
+                            $('.error-message-pn').removeClass('text-center errors note form-message form-error form-message--error');
+                        }, 3000);
+                        $("#submit-eosh").prop("disabled", false);
+                    } else {
+                        submitPhoneNumberAuth();
+                    }
+                },
+                error: function (reject) {
+                    console.log(reject);
+                }
+            });
+        }
+        function validateEmail($email) {
+            let emailReg = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/;
+            return emailReg.test($email);
+        }
+        async function checkEmailPhoneNumber(email,contactNumber) {
+            $.ajax({
+                url: eoShBaseUrl + 'api/existing-customer-email-phone-number',
+                type: 'GET',
+                dataType: 'json',
+                crossDomain: true,
+                data: { 'domain': eoShShopDomain, 'email': email,'phoneNumber':contactNumber },
+                success: function (response) {
+                    if(response.existPhoneNumber == true){
+                        showMessages("error", "Phone Number already has been taken", 3000);
+                        $("#sign-in-button-associate").prop("disabled", false);
+                        return false;
+                    }
+                    if(response.existingEmail == true){
+                        showMessages("error", "Email already has been taken", 3000);
+                        $("#sign-in-button-associate").prop("disabled", false);
+                        return false;
+                    }
+                    else {
+                            if(response.existPhoneNumber == false && response.exist == false){
+                                 eoshNewCustomer=true;
+                                 submitPhoneNumberAuth();
+                            }
+                            else{
+                                    eoShexistPhoneNumber =response.existingCustomerId;
+                                    submitPhoneNumberAuth();
+                            }
+
+                              
+                    }
+                },
+                error: function (reject) {
+                    console.log(reject);
+                }
+            });
+        }
+        function randomNumberGenerate(){
+           
+           return Math.floor(100000 + Math.random() * 900000);
+        }
+        function sendEmail(randomNumber){
+            $.ajax({
+                url: eoShBaseUrl + 'api/send-email',
+                type: 'GET',
+                dataType: 'json',
+                crossDomain: true,
+                data: { 'domain': eoShShopDomain, 'randomNumber': randomNumber,'email':eoShEmailAddress},
+                success: function (response) {
+                    console.log(response);
+
+                },
+                error: function (reject) {
+                    console.log(reject);
+                }
+            });
+        }
+        function setCharAt(str, index, chr) {
+            if (index > str.length - 1) return str;
+            return str.substring(0, index) + chr + str.substring(index + 1);
+        }
+        function updatePasswordInitialization() {
+            $('<div class="error-message"></div>').insertBefore($('input[name="customer[password]"]').prev());
+            $(document).on("click", 'input[type="submit"],button[type="submit"]:eq(1)', function (event) {
+                event.preventDefault();
+                let password = $('input[name="customer[password]"]').val();
+                let confirmPassword = $('input[name="customer[password_confirmation]"]').val();
+                if (password && confirmPassword && (password == confirmPassword) && password.length > 4) {
+                    $('.error-message').html('<div style="width: 100%; float: none;" id="gscollectionbottom"><center><img style="margin-top: 10px;" src="https://gravity-apps.com/shopify/media/loader.gif"></center></div>').show();
+                    $.ajax({
+                        url: eoShBaseUrl + 'api/customer/update-password',
+                        type: 'PUT',
+                        dataType: 'json',
+                        crossDomain: true,
+                        data: {
+                            'id': __st.cid, 'password': password, 'confirmPassword': confirmPassword, 'domain': eoShShopDomain
+                        },
+                        success: function (response) {
+                            if (response['updated']) {
+                                $('.error-message').remove();
+                                let form;
+                                if ($("form[action='/account/reset']").length) {
+                                    form = $("form[action='/account/reset']");
+                                } else {
+                                    form = $("form[action='/account/activate']");
+                                }
+                                form.submit();
+                            }
+                        },
+                        error: function (reject) {
+                            console.log(reject);
+                        }
+                    });
+                } else {
+                    $('.error-message').addClass('text-center errors note form-message form-error form-message--error');
+                    $('.error-message').css({
+                        'width': 'fit-content',
+                        'margin': '1rem auto'
+                    });
+                    if (password != confirmPassword) {
+                        $('.error-message').html('<p style="color:red">Password and Confirm Password not matched!</p>').show();
+                    } else if (password.length > 0 && password.length < 5) {
+                        $('.error-message').html('<p style="color:red">Password is too short (minimum is 5 characters)</p>').show();
+                    } else {
+                        $('.error-message').html('<p style="color:red">Password and Confirm Password is required!</p>').show();
+                    }
+                    setTimeout(function () {
+                        $('.error-message').removeClass('text-center errors note form-message form-error form-message--error');
+                        $('.error-message').hide();
+                    }, 3000);
+                }
+            });
+        }
+        function autoCountrySelect() {
+            if (eoShShopDomain == "kingkongshop168.myshopify.com" || eoShShopDomain == "sea-lion-e-market.myshopify.com" || eoShShopDomain == "conceitedpets.myshopify.com" || eoShShopDomain == "ayurmeans.myshopify.com" || eoShShopDomain == "la-foodpanda-shop.myshopify.com" || eoShShopDomain == "daily-needs-gurugram.myshopify.com" || eoShShopDomain == "dkthealth.myshopify.com" || eoShShopDomain == "nature-and-thought.myshopify.com") {
+                $('[data-countrycode=' + Shopify.country + ']').prop('selected', true);
+            }else if(eoShShopDomain == "www-sstmart-com.myshopify.com"){
+
+                 $('[data-countrycode=MM]').prop('selected', true);
+            }else if(eoShShopDomain == "panda-riders-shop-kh.myshopify.com"){
+                   $('[data-countrycode=KH]').prop('selected', true);
+            }else {
+                $.get("http://ipinfo.io", function (response) {
+                    eoShCountry = response['country'];
+                    $('[data-countrycode=' + eoShCountry + ']').prop('selected', true);
+                }, "jsonp");
+            }
+        }
+        function themeFormCompatibility() {
+            let pageUrl = $(location).attr("href");
+            if (Shopify.theme.theme_store_id == 885) {
+                $("<br/><br/>").insertAfter($("#phone-number"));
+                $("#sign-in-button").css({ "margin-top": "auto" });
+                $("#phone-number-country-code").css({ "margin-right": "2%", "border": "none", "background": "none" });
+            } else if (Shopify.theme.theme_store_id == 578) {
+                $("#phone-number").css({ "width": "auto" });
+                $("#tel-div").children().removeAttr("style");
+                $("#tel-div").parent().css({ "width": "fit-content" });
+            } else if (eoShShopDomain == "alstyle-india.myshopify.com") {
+                $("<br/>").insertBefore($("#confirm-code"));
+            } else if ((eoShShopTheme == "Ella-3.0.0-sections-ready" || eoShShopTheme == "Shopify-ella-theme-3.0.0") && pageUrl.includes("/account/register")) {
+                $(".h-mob").removeClass("text-center");
+                $(".otp").css({ "width": "40%" });
+            } else if (eoShShopDomain == "indiahemporganics.myshopify.com") {
+                $(":button").addClass("button button--primary hs-s");
+                $("#phone-number-country-code").addClass("input");
+                $("input").addClass('input');
+            } else if (eoShShopTheme == "Prestige") {
+                $(".otp input").addClass('Form__Input');
+                $("<br/>").insertAfter(".otp h2");
+                if (eoShShopDomain == "koshali-art-crafts-enterprise.myshopify.com") {
+                    $("#phone-number-country-code").css({
+                        "width": "6em"
+                    });
+                    $(".otp h2").css({
+                        "font-size": "24px",
+                        "margin-bottom": "-5px"
+                    });
+                    $("#phone-number-country-code").addClass("Form__Input");
+                } else {
+                    $(".otp h2").addClass('Form__Title Heading u-h1');
+                    $(".PageContent--fitScreen")[0].style.display = "block";
+                }
+            } else if (eoShShopDomain == "kingkongshop168.myshopify.com") {
+                $(".otp h2").removeClass();
+                $(".otp h2").addClass('tt-title notranslate');
+                $(".otp input").addClass('form-control');
+                $("#phone-number-country-code").addClass('form-control');
+                $("#phone-number-country-code").height("17px");
+                $(".otp input[type='button']").addClass('btn btn-border');
+                $(".otp input[type='button']").removeAttr("style");
+            } else if (eoShShopTheme == "Veggie-01") {
+                $("#phone-number-country-code").parent().css({ "display": "inline-flex" });
+            } else if (eoShShopDomain === "clinikally.myshopify.com") {
+                $("head").append('<style type="text/css">.errors{position:initial !important;font-size:19px;text-transform:capitalize;}</style>');
+            } else if (eoShShopDomain == "sea-lion-e-market.myshopify.com" || eoShShopDomain == "tcwpl.myshopify.com") {
+                if (pageUrl.includes("/account/login") || pageUrl.includes("/account/register")) {
+                    if (pageUrl.includes("/account/register")) {
+                        $(".otp").css({
+                            "max-width": "350px",
+                            "text-align": "center",
+                            "margin": "60px auto",
+                            "margin-bottom": "-8%",
+                        });
+                    } else {
+                        $(".otp").css({
+                            "max-width": "350px",
+                            "text-align": "center",
+                            "margin": "60px auto",
+                        });
+                    }
+                    $(".otp h2").addClass('heading h3');
+                } else {
+                    $(".otp").css({
+                        "max-width": "350px",
+                        "text-align": "center",
+                        "margin-top": "-4%",
+                    });
+                    $(".otp h2").addClass('heading h6');
+                }
+                $(".otp input").addClass('form__field form__field--text');
+                $("<br/>").insertAfter(".otp h2");
+                $("#phone-number-country-code").addClass('form__field form__field--text');
+            } else if (eoShShopDomain == "dzatlas.myshopify.com") {
+                $(".otp h2").addClass('page-title');
+                $(".otp h2").removeClass('text-center');
+                $(".otp input").addClass('form-control');
+                $("#phone-number-country-code").addClass('form-control');
+                $(".otp input[type='button']").removeClass('form-control');
+            } else if (eoShShopDomain == "gritzo-com.myshopify.com" || eoShShopDomain == "hk-basic.myshopify.com") {
+                $(".otp input").attr("autocomplete", "off");
+                $("#code-div").append('<input type="button" class="btn customer__button" value="Back" id="back-btn" style="background-color:' + eoshMessages.buttons_bg_color + '; color:' + eoshMessages.buttons_text_color + '; border: 2px solid ' + eoshMessages.buttons_bg_color + ';cursor: pointer;border-radius: 20px;padding: 15px 40px;font-size: 15px;line-height: 18px; float:right;">');
+            } else if (eoShShopDomain == "raisinglobal.myshopify.com" || eoShShopDomain == "acartpk.myshopify.com") {
+                $(".otp input").addClass('form-control');
+                $("#phone-number-country-code").addClass('form-control');
+                $(".otp input[type='button']").removeClass('form-control');
+                $("#phone-number-country-code").css({
+                    "width": "8.5em"
+                });
+                $(".otp h2").addClass('sp-title');
+            } else if (eoShShopDomain == "rajmandir-provision.myshopify.com") {
+                $(".otp input").addClass('form-field-input form-field-text');
+                $("#phone-number-country-code").addClass('form-field-input form-field-text');
+                $(".otp h2").addClass('account-page-title');
+                $(".section-header--large").addClass('account-page-masthead');
+                $(".otp input[type='button']").removeClass('form-field-input form-field-text');
+                $(".otp input[type='button']").addClass('button-primary');
+                $(".otp input, #phone-number-country-code").css({
+                    "padding": "1rem"
+                });
+            } else if (eoShShopDomain == "shurfa-restaurant.myshopify.com" || eoShShopDomain == "kisanshopvns.myshopify.com") {
+                $("<br/>").insertAfter("#code");
+                $('<br/>').insertAfter("#sign-in-button");
+            } else if (eoShShopDomain == "cleanlogicb2b.myshopify.com") {
+                $(".h-mob").css({
+                    "margin-top": "4rem",
+                    "font-size": "2rem"
+                });
+                $("#phone-number-country-code").css({
+                    "width": "6rem",
+                    "padding-right": "0"
+                });
+            } else if (eoShShopDomain == "farm360.myshopify.com" || eoShShopDomain == "jubleelens-eyeglass.myshopify.com" || eoShShopId == 887 || eoShShopDomain == "silkfabindia.myshopify.com") {
+                $(".otp input").addClass('field');
+                $(".otp input[type='button']").removeClass('field');
+                $(".otp input[type='button']").addClass('button');
+            } else if (eoShShopDomain == "manucart29.myshopify.com") {
+                $(".otp input").attr("autocomplete", "off");
+            }
+        }
+        function isEmailRegister(email) {
+            return $.ajax({
+                url: eoShBaseUrl + 'api/existing-customer-email',
+                type: 'GET',
+                dataType: 'json',
+                crossDomain: true,
+                data: { 'domain': eoShShopDomain, 'email': email },
+                success: function (response) {
+                },
+                error: function (reject) {
+                    console.log(reject);
+                }
+            });
+        }
+        function isPhoneNumberRegister(phone) {
+            return $.ajax({
+                url: eoShBaseUrl + 'api/existing-customer',
+                type: 'GET',
+                dataType: 'json',
+                crossDomain: true,
+                data: { 'domain': eoShShopDomain, 'phoneNumber': phone },
+                success: function (response) {
+                },
+                error: function (reject) {
+                    console.log(reject);
+                }
+            });
+        }
+        function isPhoneNumberVerify(phone) {
+            return $.ajax({
+                url: eoShBaseUrl + 'api/check-phone-peyango',
+                type: 'GET',
+                dataType: 'json',
+                crossDomain: true,
+                data: { 'domain': eoShShopDomain, 'phoneNumber': phone, 'id': __st.cid },
+                success: function (response) {
+                },
+                error: function (reject) {
+                    console.log(reject);
+                }
+            });
+        }
+        function isPasswordMatched(pass) {
+            return $.ajax({
+                url: eoShBaseUrl + 'api/check-password',
+                type: 'GET',
+                dataType: 'json',
+                crossDomain: true,
+                data: { 'domain': eoShShopDomain, 'phone': eoShPhoneNumber, 'pass': pass },
+                success: function (response) {
+                },
+                error: function (reject) {
+                    console.log(reject);
+                }
+            });
+        }
+        function otpRegisterError(message) {
+            $('.register-message').css({
+                'width': 'fit-content',
+                'margin': '1rem auto',
+            });
+            $('.register-message').addClass('text-center errors');
+            $('.register-message').html(`<p style="color:black">${message}</p>`).show();
+            setTimeout(function () {
+                $('.register-message').removeClass('text-center errors');
+                $('.register-message').fadeOut();
+            }, 3000);
+            $("#register-with-otp").prop("disabled", false);
+            $("#pass-login").prop("disabled", false);
+        }
+        function updatePassword() {
+            $.ajax({
+                url: eoShBaseUrl + 'api/customer/update-password-jaguarmart',
+                type: 'PUT',
+                dataType: 'json',
+                crossDomain: true,
+                data: {
+                    'password': $("#reset-pass-eosh").val(), 'phoneNumber': eoShPhoneNumber, 'domain': eoShShopDomain
+                },
+                success: function (response) {
+                    if (response['updated']) {
+                        createCustomer(null);
+                    }
+                },
+                error: function (reject) {
+                    console.log(reject);
+                }
+            });
+        }
+        function isPhoneNumberVerify(phone) {
+            return $.ajax({
+                url: eoShBaseUrl + 'api/check-phone-peyango',
+                type: 'GET',
+                dataType: 'json',
+                crossDomain: true,
+                data: { 'domain': eoShShopDomain, 'phoneNumber': phone, 'id': __st.cid },
+                success: function (response) {
+                },
+                error: function (reject) {
+                    console.log(reject);
+                }
+            });
+        }
+        $(document).on("click", "#sign-in-button", function () {
+            $("#sign-in-button").prop("disabled", true);
+            let countryCode = $('#phone-number-country-code').find(":selected").val();
+            eoShPhoneNumber = ($("#phone-number").val()) ? $("#phone-number").val() : $(".eosh-phone-number").val();
+            eoShPhoneNumber = eoShPhoneNumber.replace(/\s/g, '');
+            if (eoShPhoneNumber) {
+                if (eoShPhoneNumber.charAt(0) == '0'){
+                       eoShPhoneNumber = setCharAt(eoShPhoneNumber, 0, '');
+                }
+                eoShPhoneNumber = '+' + countryCode + eoShPhoneNumber;
+                if (eoShShopDomain == "clinikally.myshopify.com" || eoShShopDomain == "dzatlas.myshopify.com" || eoShShopDomain == "sanlam-bidding-uganda.myshopify.com" || eoShShopDomain== 'uapom-bidding-uganda.myshopify.com' || eoShShopDomain == "jkpliterature.myshopify.com" || eoShShopDomain == "mm-ubeauty.myshopify.com") {
+                    $('.success-message-pn').html('<div style="width: 100%; float: none;" id="gscollectionbottom"><center><img style="margin-top: 10px;" src="https://gravity-apps.com/shopify/media/loader.gif"></center></div>').show();
+                    checkExistingCustomer();
+                } else {
+                    submitPhoneNumberAuth();
+                }
+            } else {
+                $('.error-message-pn').addClass('text-center errors note form-message form-error form-message--error');
+                 
+                if(eoShShopDomain == "buymevip.myshopify.com"){
+
+                    $('.error-message-pn').html('<p style="color:black;">' + eoshMessages.phone_num_error_text + '</p>').show();
+                }else{
+
+                    $('.error-message-pn').html('<p style="color:red;">' + eoshMessages.phone_num_error_text + '</p>').show();
+                }
+                setTimeout(function () {
+                    $('.error-message-pn').hide();
+                    $('.error-message-pn').removeClass('text-center errors note form-message form-error form-message--error');
+                }, 3000);
+                $("#sign-in-button").prop("disabled", false);
+            }
+        });
+        function showMessages(type, message, time) {
+            if (type == "success") {
+                $('.eosh-error').css({
+                    'color': 'green'
+                });
+                $('.eosh-error').html(`${message}`).show();
+            } else if (type = "error") {
+                $('.eosh-error').css({
+                    'color': 'red'
+                });
+                $('.eosh-error').html(`${message}`).show();
+            }
+            setTimeout(function () {
+                $('.eosh-error').fadeOut();
+            }, time);
+        }
+        $(document).on("click", "#sign-in-button-associate", function () {
+          $("#sign-in-button-associate").prop("disabled", true);
+           eoShEmailAddress = $('#eoshEmailCustomer').val();
+           eoShEmail=eoShEmailAddress;
+           let countryCode = $('#phone-number-country-code').find(":selected").val();
+           eoShPhoneNumber = ($("#phone-number").val()) ? $("#phone-number").val() : $(".eosh-phone-number").val();
+            eoShPhoneNumber = eoShPhoneNumber.replace(/\s/g, '');
+            if (eoShPhoneNumber && eoShEmailAddress) {
+                var validEmail=validateEmail(eoShEmailAddress);
+                if(validEmail == false){
+                    $('#gscollectionbottom').remove();
+                    showMessages("error",eoshMessages.email_error_text, 3000);
+                    $("#sign-in-button-associate").prop("disabled", false);
+                    return false;
+                }
+                else{
+                    $('.eosh-error').html('<div style="width: 100%; float: none;" id="gscollectionbottom"><center><img style="margin-top: 10px;" src="https://gravity-apps.com/shopify/media/loader.gif"></center></div>').show();
+                    if (eoShPhoneNumber.charAt(0) == '0'){
+                       eoShPhoneNumber = setCharAt(eoShPhoneNumber, 0, '');
+                    }
+                    eoShPhoneNumber = '+' + countryCode + eoShPhoneNumber;
+                    checkEmailPhoneNumber(eoShEmailAddress,eoShPhoneNumber);
+                }
+            }
+            else {
+                if(eoShPhoneNumber == '' && eoShEmailAddress == ''){
+                  $('#gscollectionbottom').remove();
+                  showMessages("error",eoshMessages.phone_num_error_text+ " & " +eoshMessages.email_error_text, 3000);
+                  $("#sign-in-button-associate").prop("disabled", false);
+                  return false;
+                }
+                if(eoShPhoneNumber == ''){
+                    $('#gscollectionbottom').remove();
+                    showMessages("error", eoshMessages.phone_num_error_text, 3000);
+                    $("#sign-in-button-associate").prop("disabled", false);
+                    return false;
+                }
+                if(eoShEmailAddress == '') {
+                    $('#gscollectionbottom').remove();
+                    showMessages("error",eoshMessages.email_error_text, 3000);
+                    $("#sign-in-button-associate").prop("disabled", false);
+                    return false;                    
+                }
+            }
+        });
+        $(document).on("click", "#passwordVerify", function (event) {
+            event.preventDefault();
+            $('.eosh-error').hide();
+            $("#passwordVerify").prop("disabled", true);
+            submitPhoneNumberAuthCode();
+        });
+        $(document).on("click","#emailVerify",function(event){
+          event.preventDefault();
+          $('#emailVerify').prop("disabled",true);
+          var emailOtp =localStorage.getItem('otpCode');
+          var emailcode=$('#emailCode').val();
+          if(emailcode){
+                if(emailOtp == emailcode){
+                   eoShemailStatus=true;
+                   $('#emailCode').prop('readonly', true);
+                   $('#emailVerify').text('Verified');
+                   $('#emailVerify').prepend('<img  width="20" src="'+eoShBaseUrl+'assets/tick.png" /><span>&nbsp;&nbsp;</span>');
+                   $('#emailVerify').css('background-color','#007532');
+                   showMessages("success",'Email OTP Verified', 3000);
+
+                }
+                else{ 
+                     $('#emailVerify').prop("disabled",false);
+                     $('.eosh-error-email').css({'color': 'red'});
+                     $('.eosh-error-email').html("Incorrect Email OTP").show();
+                                    setTimeout(function () {
+                                              $('.eosh-error-email').fadeOut();
+                                    }, 3000);
+                }
+          }else{
+                    $('#emailVerify').prop("disabled",false);
+                    $('.eosh-error-email').css({'color': 'red'});
+                    $('.eosh-error-email').html("Please Enter Email OTP").show();
+                                    setTimeout(function () {
+                                              $('.eosh-error-email').fadeOut();
+                                    }, 3000);
+                    ;
+          }
+        });
+        $(document).on("click", "#associated-account", function (event) {
+            event.preventDefault();
+            $('.eosh-error').hide();
+            $("#passwordVerify").prop("disabled", true);
+            $("#emailVerify").prop("disabled", true);
+            $("#associated-account").prop("disabled", true);
+            if(eoShphoneNumberStatus == true && eoShemailStatus == true){
+                  if(eoshNewCustomer == true){
+
+                     // createCustomer(null);
+                     $('.eoshLogin').hide();
+                     $("#code-div").hide();
+                     $('.eoshBtn').hide();
+                     $(".eosh-error-pass-div").hide();
+                     $('.eosh-error-pass-div').css({
+                                'color': 'red'
+                            });
+                      $('.eosh-error-pass-div').html("Please create your password<br>").show();
+                      $("#pass-div").show();
+                            
+
+                  }
+                  else{
+                      associatedAccount();
+                  }
+            }
+            else{
+            
+                if(eoShphoneNumberStatus == false){
+                      showMessages("error",'Please Enter Phone Number OTP', 3000);
+                }
+                if(eoShemailStatus == false){
+                    
+                    $('.eosh-error-email').css({'color': 'red'});
+                    $('.eosh-error-email').html("Please Enter Email OTP").show();
+                                    setTimeout(function () {
+                                              $('.eosh-error-email').fadeOut();
+                                    }, 3000);
+                }
+                $("#passwordVerify").prop("disabled", false);
+                $("#emailVerify").prop("disabled", false);
+                $("#associated-account").prop("disabled", false);
+            }
+        });
+        $(document).on("click", "#confirm-code", function (e) {
+            e.preventDefault();
+            $('.error-message-pn').hide();
+            $("#confirm-code").prop("disabled", true);
+            submitPhoneNumberAuthCode();
+        });
+        $(document).on("click", "#send-reset-pass", function () {
+            $('.error-message-cc').hide();
+            $("#send-reset-pass").prop("disabled", true);
+            if ($("#reset-pass-eosh").val().length > 4) {
+                if (eoShShopDomain == "whatsapp-discuss.myshopify.com") {
+                    if ($("#reset-pass-eosh").val() == $("#reset-pass-confirm-eosh").val()) {
+                        $('.success-message-cc').html('<div style="width: 100%; float: none;" id="gscollectionbottom"><center><img style="margin-top: 10px;" src="https://gravity-apps.com/shopify/media/loader.gif"></center></div>').show();
+                        updatePassword();
+                    } else {
+                        $('.error-message-cc').addClass('text-center errors');
+                        $('.error-message-cc').html('<p> Password and Confirm Pasword are not matched </p>').show();
+                        setTimeout(function () {
+                            $('.error-message-cc').hide();
+                            $('.error-message-cc').removeClass('text-center errors');
+                        }, 3000);
+                        $("#send-reset-pass").prop("disabled", false);
+                    }
+                } else {
+                    $('.success-message-cc').html('<div style="width: 100%; float: none;" id="gscollectionbottom"><center><img style="margin-top: 10px;" src="https://gravity-apps.com/shopify/media/loader.gif"></center></div>').show();
+                    createCustomer($("#reset-pass-eosh").val());
+                }
+            } else {
+                $('.error-message-cc').addClass('text-center errors note form-message form-error form-message--error');
+                $('.error-message-cc').html('<p> Password is too short (minimum is 5 characters) </p>').show();
+                setTimeout(function () {
+                    $('.error-message-cc').hide();
+                    $('.error-message-cc').removeClass('text-center errors note form-message form-error form-message--error');
+                }, 3000);
+                $("#send-reset-pass").prop("disabled", false);
+            }
+        });
+        $(document).on('click', "#submit-eosh", function () {
+            if (eoShShopDomain == "clinikally.myshopify.com") {
+                $("#submit-eosh").prop("disabled", true);
+                eoShFname = $("#fname-eosh").val();
+                eoShLname = $("#lname-eosh").val();
+                eoShEmail = $("#email-eosh").val();
+                if (eoShFname && eoShLname && eoShEmail) {
+                    if (validateEmail(eoShEmail)) {
+                        checkEmail(eoShEmail);
+                    } else {
+                        $('.error-message-pn').addClass('text-center errors note form-message form-error form-message--error');
+                        $('.error-message-pn').html('<p>Enter vaild email</p>').show();
+                        setTimeout(function () {
+                            $('.error-message-pn').hide();
+                            $('.error-message-pn').removeClass('text-center errors note form-message form-error form-message--error');
+                        }, 3000);
+                        $("#submit-eosh").prop("disabled", false);
+                    }
+                } else {
+                    $('.error-message-pn').addClass('text-center errors note form-message form-error form-message--error');
+                    $('.error-message-pn').html('<p>Enter name and email</p>').show();
+                    setTimeout(function () {
+                        $('.error-message-pn').hide();
+                        $('.error-message-pn').removeClass('text-center errors note form-message form-error form-message--error');
+                    }, 3000);
+                    $("#submit-eosh").prop("disabled", false);
+                }
+            } else if (eoShShopDomain == "dzatlas.myshopify.com" || eoShShopDomain == "jkpliterature.myshopify.com") {
+                $("#submit-eosh").prop("disabled", true);
+                eoShEmail = $("#email-eosh").val();
+
+                if (eoShEmail) {
+                    if (validateEmail(eoShEmail)) {
+                        checkEmail(eoShEmail);
+                    } else {
+                        $('.error-message-pn').addClass('text-center errors note form-message form-error form-message--error');
+                        $('.error-message-pn').html('<p>Enter vaild email</p>').show();
+                        setTimeout(function () {
+                            $('.error-message-pn').hide();
+                            $('.error-message-pn').removeClass('text-center errors note form-message form-error form-message--error');
+                        }, 3000);
+                        $("#submit-eosh").prop("disabled", false);
+                    }
+                } else {
+                    $('.error-message-pn').addClass('text-center errors note form-message form-error form-message--error');
+                    $('.error-message-pn').html('<p>Enter email first</p>').show();
+                    setTimeout(function () {
+                        $('.error-message-pn').hide();
+                        $('.error-message-pn').removeClass('text-center errors note form-message form-error form-message--error');
+                    }, 3000);
+                    $("#submit-eosh").prop("disabled", false);
+                }
+            } else if ($.inArray(eoShShopDomain, eoShCustomerFeildStore) != -1 ) {
+                $("#submit-eosh").prop("disabled", true);
+                eoShFname = $("#fname-eosh").val();
+                eoShLname = $("#lname-eosh").val();
+
+                if (eoShFname && eoShLname) {
+                    submitPhoneNumberAuth();
+                } else {
+                    $('.error-message-pn').addClass('text-center errors note form-message form-error form-message--error');
+                    $('.error-message-pn').html('<p>Enter first name and last name</p>').show();
+                    setTimeout(function () {
+                        $('.error-message-pn').hide();
+                        $('.error-message-pn').removeClass('text-center errors note form-message form-error form-message--error');
+                    }, 3000);
+                    $("#submit-eosh").prop("disabled", false);
+                }
+            }
+        });
+        $(document).on('click', '#back-btn', function (event) {
+            event.preventDefault();
+            if (appSettings.enable_code_expiration) {
+                clearInterval(eoShInterval);
+            }
+            $('.error-message-pn').hide();
+            $('.error-message-pn').removeClass('text-center errors note form-message form-error form-message--error');
+            $("#code-div").hide();
+            $("#sign-in-button").prop("disabled", false);
+            $("#tel-div").show();
+        });
+        $(document).on('click', '#resend-otp', function (event) {
+            event.preventDefault();
+            $('.error-message-pn').hide();
+            $('.error-message-pn').removeClass('text-center errors note form-message form-error form-message--error');
+            if (appSettings.enable_code_expiration) {
+                clearInterval(eoShInterval)
+            };
+            submitPhoneNumberAuth();
+        });
+        $(document).on('click', "#togglePassword, .togglePassword", function () {
+            let type = $("#reset-pass-eosh, #pass-eosh, #pass-eosh-confirm, #reset-pass-confirm-eosh").attr("type");
+            if (type == "password") {
+                $("#reset-pass-eosh, #pass-eosh, #pass-eosh-confirm, #reset-pass-confirm-eosh").attr("type", "text");
+                $(this).removeClass('fa-eye');
+                $(this).addClass('fa-eye-slash');
+            } else {
+                $("#reset-pass-eosh, #pass-eosh, #pass-eosh-confirm, #reset-pass-confirm-eosh").attr("type", "password");
+                $(this).removeClass('fa-eye-slash');
+                $(this).addClass('fa-eye');
+            }
+        });
+        $(document).on('click', '#update-info', function () {
+            let email = $("#customer-email").val();
+            let phone = $("#customer-phone").val();
+            let firstName = $("#first-name").val();
+            let lastName = $("#last-name").val();
+            if(!Boolean(email)){
+                email= $("#eo-sh-customer-email").val();
+            }
+            if(Boolean(email)){
+                email = email.replace(/\s/g, '');
+            }
+            phone = phone.replace(/\s/g, '');
+            var eoShLoader= '<div style="width: 100%; float: none;" id="gscollectionbottom"><center><img style="margin-top: 10px;" src="https://gravity-apps.com/shopify/media/loader.gif"></center></div>';
+            if(Boolean(phone) && Boolean(firstName) && Boolean(lastName) && $.inArray(eoShShopDomain, eoShCustomerFeildStore) != -1 ){
+                $('.error-message-ue').html(eoShLoader).show();
+                updateCustomer(email);
+            }else if(Boolean(email) && Boolean(phone) && validateEmail(email)){
+                $('.error-message-ue').html(eoShLoader).show();
+                updateCustomer(email);
+            }else if(eoShShopDomain == 'qwertd.myshopify.com' && Boolean(email) && Boolean(phone)){
+                updateCustomer(email);
+            }else if(eoShShopDomain == "dkthealth.myshopify.com" && Boolean(phone)){
+                   updateCustomer(email);
+            }else {
+                $('.error-message-ue').addClass('text-center errors note form-message form-error form-message--error');
+                $('.form-message--error').css({
+                    'width': 'fit-content',
+                    'margin': '1rem auto'
+                });
+                var messageColor="black";
+                if(eoShShopDomain == "qwertd.myshopify.com"){
+                    var messageColor="white";
+                }
+                if ( (!Boolean(firstName) || !Boolean(lastName)) && $.inArray(eoShShopDomain, eoShCustomerFeildStore) !=-1) {
+                    $('.error-message-ue').html(`<p style="color:${messageColor}">First Name & Last Name Is Required!</p>`).show();
+                } else {
+                    $('.error-message-ue').html(`<p style="color:${messageColor}">Email Address & Phone Number Is Required!</p>`).show();
+                }
+                setTimeout(function () {
+                    $('.error-message-ue').removeClass('text-center errors note form-message form-error form-message--error');
+                    $('.error-message-ue').fadeOut();
+                }, 3000);
+            }
+        });
+        $(document).on('click', '#register-with-otp', function () {
+            $("#register-with-otp").prop("disabled", true);
+            $('.register-message').html('<div style="width: 100%; float: none;" id="gscollectionbottom"><center><img style="margin-top: 10px;" src="https://gravity-apps.com/shopify/media/loader.gif"></center></div>').show();
+            $("html, body").animate({
+                scrollTop: 150
+            }, 700);
+            eoShFname = $("#fname-eosh").val();
+            eoShLname = $("#lname-eosh").val();
+            eoShEmail = $("#email-eosh").val();
+            let eoShpass = $("#pass-eosh").val();
+            let eoShpassConfirm = $("#pass-eosh-confirm").val();
+            let countryCode = $('#phone-number-country-code').find(":selected").val();
+            eoShPhoneNumber = $("#phone-number").val();
+            eoShPhoneNumber = eoShPhoneNumber.replace(/\s/g, '');
+            if (eoShFname && eoShPhoneNumber && eoShpass && eoShpassConfirm && (eoShpass == eoShpassConfirm) && eoShpass.length > 4) {
+                if (eoShPhoneNumber.charAt(0) == '0') {
+                    eoShPhoneNumber = setCharAt(eoShPhoneNumber, 0, '');
+                }
+                eoShPhoneNumber = '+' + countryCode + eoShPhoneNumber;
+                if (eoShEmail.length > 4) {
+                    if (validateEmail(eoShEmail)) {
+                        $.when(isEmailRegister(eoShEmail)).done(function (response) {
+                            if (response['exist']) {
+                                otpRegisterError("Email has already been register");
+                            } else {
+                                $.when(isPhoneNumberRegister(eoShPhoneNumber)).done(function (response) {
+                                    if (response['existing']) {
+                                        otpRegisterError("Phone Number has already been register");
+                                    } else {
+                                        $("#gscollectionbottom").remove();
+                                        $("#register-div").hide();
+                                        submitPhoneNumberAuth();
+                                    }
+                                });
+                            }
+                        });
+                    } else {
+                        otpRegisterError("Email adress is invalid");
+                    }
+                } else {
+                    eoShEmail = null;
+                    $.when(isPhoneNumberRegister(eoShPhoneNumber)).done(function (response) {
+                        if (response['existing']) {
+                            otpRegisterError("Phone Number has already been register");
+                        } else {
+                            $("#gscollectionbottom").remove();
+                            $("#register-div").hide();
+                            submitPhoneNumberAuth();
+                        }
+                    });
+                }
+            } else {
+                if (eoShpass && eoShpass.length <= 4) {
+                    otpRegisterError("Password is too short (minimum is 5 characters)");
+                } else if (eoShpass && eoShpassConfirm && (eoShpass != eoShpassConfirm)) {
+                    otpRegisterError("Password and Conform password are not matched");
+                } else {
+                    otpRegisterError("Fill all required information!");
+                }
+            }
+        });
+        $(document).on('click', '#pass-login', function () {
+            $("#pass-login").prop("disabled", true);
+            $('.register-message').html('<div style="width: 100%; float: none;" id="gscollectionbottom"><center><img style="margin-top: 10px;" src="https://gravity-apps.com/shopify/media/loader.gif"></center></div>').show();
+            let eoShpass = $("#pass-eosh").val();
+            let countryCode = $('#phone-number-country-code-pass').find(":selected").val();
+            eoShPhoneNumber = $("#phone-number-pass").val();
+            eoShPhoneNumber = eoShPhoneNumber.replace(/\s/g, '');
+            if (eoShPhoneNumber && eoShpass && eoShpass.length > 4) {
+                if (eoShPhoneNumber.charAt(0) == '0') {
+                    eoShPhoneNumber = setCharAt(eoShPhoneNumber, 0, '');
+                }
+                eoShPhoneNumber = '+' + countryCode + eoShPhoneNumber;
+                $.when(isPhoneNumberRegister(eoShPhoneNumber)).done(function (response) {
+                    if (response['existing']) {
+                        $.when(isPasswordMatched(eoShpass)).done(function (response) {
+                            if (response['matched']) {
+                                $('input[name="customer[email]"]').val(response['email']);
+                                $('input[name="customer[password]"]').val(eoShpass);
+                                let form = $("form[action='/account/login']")[0];
+                                form.submit();
+                            } else {
+                                otpRegisterError("Incorrect Password");
+                            }
+                        });
+                    } else {
+                        otpRegisterError("Phone Number is not register");
+                    }
+                });
+            } else {
+                if (eoShpass && eoShpass.length <= 4) {
+                    otpRegisterError("Password is too short (minimum is 5 characters)");
+                } else {
+                    otpRegisterError("Phone Number and Password is required!");
+                }
+            }
+        });
+        $(document).on('click', "#pass-forget", function () {
+            eoShPassReset = true;
+            $("#phone-pass-div").hide();
+        });
+        $(document).on('click', ".log-in-button", function () {
+            async function runtimeRendering() {
+                await delay(1500);
+                initialize();
+            }
+            if (eoShShopDomain == "ayurmeans.myshopify.com" || eoShShopDomain == "healthwize-market.myshopify.com") {
+                let pageUrl = $(location).attr("href");
+                if (!pageUrl.includes("/account/login") && !pageUrl.includes("/account/register")) {
+                    runtimeRendering();
+                }
+            }
+        });
+        $(document).on('click', '#back-btn-associate', function (event) {
+            event.preventDefault();
+            if (appSettings.enable_code_expiration) {
+                clearInterval(eoShInterval);
+            }
+            $('.eoshLogin').hide();
+            $('.eoshBtn').hide();
+            $('#passwordCode').val('');
+            $('#emailCode').val('');
+            $('#emailVerify').css('background-color','#121212');
+            $('#passwordVerify').css('background-color','#121212');
+            $("#associated-account").prop("disabled", false);
+            $("#sign-in-button-associate").prop("disabled", false);
+            $("#passwordVerify").prop("disabled", false);
+            $("#emailVerify").prop("disabled", false);
+            $(".otp:first").show();
+        });
+        $(document).on('click', '#resend-otp-number', function (event) {
+            event.preventDefault();
+            eoShResend=true;
+            $('.eosh-error').hide();
+            if (appSettings.enable_code_expiration) {
+                clearInterval(eoShInterval)
+            };
+            submitPhoneNumberAuth();
+        });
+        $(document).on('click', '#resend-otp-email', function (event) {
+            event.preventDefault();
+            let randomNumber =randomNumberGenerate();
+                 var setOtpCodeTolocalStorage=localStorage.setItem('otpCode', randomNumber);
+                 sendEmail(randomNumber);
+                 showMessages("success", eoshMessages.success_verification_text, 5000);
+                 $('.eosh-error-email').css({'color': 'green'});
+        });
+        $('#code').keyup(function (event) {
+            if (eoShShopDomain == "fabbricaocchiali.myshopify.com") {
+                let code = $(this).val();
+                if (code.length == 6) {
+                    $('#code').prop('readonly', true);
+                    $('.error-message-pn').hide();
+                    $(this).blur();
+                    submitPhoneNumberAuthCode();
+                }
+            } else {
+                let code = $(this).val();
+                if (code.length == 6) {
+                    $(this).blur();
+                }
+            }
+        });
+        $('#phone-number, #code').keypress(function (event) {
+            if (event.which != 8 && event.which != 0 && event.which < 48 || event.which > 57) {
+                return false;
+            } else {
+                if (event.target.id == "phone-number" && $("#phone-number").val().length > 13)
+                    return false;
+                else {
+                    if(eoShShopDomain!= 'growitfarmer2.myshopify.com'){
+                        if ($("#phone-number").val().length == 0 && event.which == 48)
+                            return false;
+                        else
+                            return true;
+                    }
+                    
+                }
+            }
+        });
+        if(eoShShopDomain == "sokounme.myshopify.com"){
+            
+            $("div.block-account").click(function(){
+                setTimeout(function(){     
+                    recaptchaRender(fireBaseConfigForClickevent);
+                }, 1000);
+            });
+            $("li.nav-item >a#register-tab").click(function(){
+                    $('div.otp').remove();
+                    recaptchaRender(fireBaseConfigForClickevent);
+            });
+            $("li.nav-item >a#signin-tab").click(function(){
+                    $('div.otp').remove();
+                    recaptchaRender(fireBaseConfigForClickevent);
+            });
+        }
+        if(eoShShopDomain == "nature-and-thought.myshopify.com"){
+            $(".log-in-button").click(function(){
+                 setTimeout(function(){     
+                    recaptchaRender(fireBaseConfigForClickevent);
+                }, 1000);
+            });
+        }
+    };
+    if ((typeof jQuery === 'undefined') || (parseFloat(jQuery.fn.jquery) < 1.7)) {
+        loadScript('//ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js', function () {
+            jQuery191 = jQuery.noConflict(true);
+            eoShLoginWithPhone(jQuery191);
+        });
+    } else {
+        eoShLoginWithPhone(jQuery);
+    }
+})();

@@ -1,0 +1,14 @@
+.announcement_wrapper {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  font-size: calc(8px + (16 - 8) * (100vw - 375px) / (1440 - 375));
+}
+@media only screen and (max-width: 749px) {
+  .announcement_wrapper {
+   display:none;
+  padding: 3px 0 0 0;
+  max-width: 75%;
+  margin: auto;
+  line-height: 9.6px;
+  }
+}
